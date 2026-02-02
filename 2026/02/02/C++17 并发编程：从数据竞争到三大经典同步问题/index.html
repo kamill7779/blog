@@ -29,7 +29,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://kamill7779.github.io/blog/assets/avatar.jpg">
 <meta property="article:published_time" content="2026-02-02T15:30:00.000Z">
-<meta property="article:modified_time" content="2026-02-02T17:23:02.000Z">
+<meta property="article:modified_time" content="2026-02-02T17:36:16.000Z">
 <meta property="article:author" content="kamil.liu">
 <meta property="article:tag" content="cpp">
 <meta property="article:tag" content="os">
@@ -52,7 +52,7 @@
 
   
 
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kamil.liu","sameAs":[],"image":"https://kamill7779.github.io/blog/assets/avatar.jpg"},"dateCreated":"2026-02-02T23:30:00+08:00","dateModified":"2026-02-03T01:23:02+08:00","datePublished":"2026-02-02T23:30:00+08:00","description":"","headline":"C++17 并发编程：从数据竞争到三大经典同步问题","mainEntityOfPage":{"@type":"WebPage","@id":"https://kamill7779.github.io/blog/2026/02/02/C++17%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E5%88%B0%E4%B8%89%E5%A4%A7%E7%BB%8F%E5%85%B8%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/"},"publisher":{"@type":"Organization","name":"kamil.liu","sameAs":[],"image":"https://kamill7779.github.io/blog/assets/avatar.jpg","logo":{"@type":"ImageObject","url":"https://kamill7779.github.io/blog/assets/avatar.jpg"}},"url":"https://kamill7779.github.io/blog/2026/02/02/C++17%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E5%88%B0%E4%B8%89%E5%A4%A7%E7%BB%8F%E5%85%B8%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/","keywords":"cpp, os","thumbnailUrl":"/blog/assets/posts/cpp17-concurrency/cover.jpg","image":1}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kamil.liu","sameAs":[],"image":"https://kamill7779.github.io/blog/assets/avatar.jpg"},"dateCreated":"2026-02-02T23:30:00+08:00","dateModified":"2026-02-03T01:36:16+08:00","datePublished":"2026-02-02T23:30:00+08:00","description":"","headline":"C++17 并发编程：从数据竞争到三大经典同步问题","mainEntityOfPage":{"@type":"WebPage","@id":"https://kamill7779.github.io/blog/2026/02/02/C++17%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E5%88%B0%E4%B8%89%E5%A4%A7%E7%BB%8F%E5%85%B8%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/"},"publisher":{"@type":"Organization","name":"kamil.liu","sameAs":[],"image":"https://kamill7779.github.io/blog/assets/avatar.jpg","logo":{"@type":"ImageObject","url":"https://kamill7779.github.io/blog/assets/avatar.jpg"}},"url":"https://kamill7779.github.io/blog/2026/02/02/C++17%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E5%88%B0%E4%B8%89%E5%A4%A7%E7%BB%8F%E5%85%B8%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/","keywords":"cpp, os","thumbnailUrl":"/assets/posts/cpp17-concurrency/cover.jpg","image":1}</script>
   
 </head>
 <body>
@@ -71,7 +71,7 @@
 
 <widget class="widget-wrapper related post-list"><div class="widget-header dis-select"><span class="name">专栏：C++系列</span></div><div class="widget-body"><a class="item active" href="/blog/2026/02/02/C++17%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E5%88%B0%E4%B8%89%E5%A4%A7%E7%BB%8F%E5%85%B8%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/"><span class="title">C++17 并发编程：从数据竞争到三大经典同步问题</span><svg class="active-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M21 11.098v4.993c0 3.096 0 4.645-.734 5.321c-.35.323-.792.526-1.263.58c-.987.113-2.14-.907-4.445-2.946c-1.02-.901-1.529-1.352-2.118-1.47a2.225 2.225 0 0 0-.88 0c-.59.118-1.099.569-2.118 1.47c-2.305 2.039-3.458 3.059-4.445 2.945a2.238 2.238 0 0 1-1.263-.579C3 20.736 3 19.188 3 16.091v-4.994C3 6.81 3 4.666 4.318 3.333C5.636 2 7.758 2 12 2c4.243 0 6.364 0 7.682 1.332C21 4.665 21 6.81 21 11.098" opacity=".5"/><path fill="currentColor" d="M9 5.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5z"/></svg></a></div></widget>
 
-<widget class="widget-wrapper recent post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/blog/2026/02/02/C++17%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E5%88%B0%E4%B8%89%E5%A4%A7%E7%BB%8F%E5%85%B8%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/"><span class="title">C++17 并发编程：从数据竞争到三大经典同步问题</span></a><a class="item title" href="/blog/2026/02/01/hello-world/"><span class="title">Hello World</span></a></div></widget>
+<widget class="widget-wrapper recent post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/blog/2026/02/02/C++17%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E5%88%B0%E4%B8%89%E5%A4%A7%E7%BB%8F%E5%85%B8%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/"><span class="title">C++17 并发编程：从数据竞争到三大经典同步问题</span></a></div></widget>
 </div>
 <footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/kamill7779" target="_blank" rel="external nofollow noopener noreferrer"><img src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/08a41b181ce68.svg"/></a><a class="social" href="mailto:kamill7779@outlook.com" rel="noopener noreferrer"><img src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/942ebbf1a4b91.svg"/></a><a class="social" href="https://kamill7779.github.io/blog/atom.xml" target="_blank" rel="external nofollow noopener noreferrer"><img src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/3616429.svg"/></a></div></footer>
 </div></aside><div class="l_main" id="main">
@@ -80,11 +80,11 @@
 
 
 
-<div class="article banner top"><img class="lazy bg" data-src="/blog/assets/posts/cpp17-concurrency/banner.jpg">
+<div class="article banner top"><img class="lazy bg" data-src="/assets/posts/cpp17-concurrency/banner.jpg">
   <div class="content">
     <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/blog/">主页</a>
 <span class="sep"></span><a class="cap breadcrumb" id="menu" href="/blog/topic/">专栏</a><span class="sep"></span><a class="cap breadcrumb" id="proj" href="/blog/2026/02/02/C++17%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E5%88%B0%E4%B8%89%E5%A4%A7%E7%BB%8F%E5%85%B8%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/">C++系列</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2026-02-02T15:30:00.000Z">2026-02-02</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2026-02-02T17:23:02.000Z">2026-02-03</time></span></div></div></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2026-02-02T15:30:00.000Z">2026-02-02</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2026-02-02T17:36:16.000Z">2026-02-03</time></span></div></div></div>
     
     <div class="bottom only-title">
       
@@ -109,13 +109,13 @@
 </blockquote>
 <p><strong>并发</strong>可以理解为一种“同时”的假象：操作系统把 CPU 的时间切成很多很短的时间片，在多个任务之间快速切换。由于切换速度足够快，人就会感觉好像所有任务都在同时运行。哪怕你的电脑只有单核 CPU，依然可以一边听歌、一边下载文件、一边开着编辑器敲代码——<strong>任务在宏观上同时进行，微观上交替推进</strong>。</p>
 <!-- 这是一张图片，ocr 内容为： -->
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770021644847-14b81a72-16db-42e5-86c5-ef40d9f3be07.png" alt="并发：同一时间段内可以交替处理多个操作"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770021644847-14b81a72-16db-42e5-86c5-ef40d9f3be07.png" alt="并发：同一时间段内可以交替处理多个操作"></p>
 <p>而<strong>并行</strong>则是“真正的同时”：它依赖多个计算单元（多核 CPU、多个处理器，甚至 GPU 的大量计算核心），让多个任务在同一时刻<strong>各占一个核心</strong>执行。当你有 4 核 CPU 时，理论上可以让 4 段计算密集型任务在同一时间段内各跑各的，这才是并行的典型场景：<strong>任务在宏观和微观上都同时推进</strong>。</p>
 <blockquote>
 <p>并发更多提升的是系统的<strong>响应性</strong>与<strong>吞吐能力</strong>（例如：程序不会卡死在某个慢操作上，而是能继续处理别的请求）；并行才更直接地对应“计算更快”（例如：把一个大计算拆成多块，让多个核心一起算）  </p>
 </blockquote>
 <!-- 这是一张图片，ocr 内容为： -->
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770021651028-0a84c6d2-ac2c-43b7-b7b7-d79d85a4833b.png" alt="并行：同一时刻内同时处理多个操作"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770021651028-0a84c6d2-ac2c-43b7-b7b7-d79d85a4833b.png" alt="并行：同一时刻内同时处理多个操作"></p>
 <h3 id="1-2-进程-vs-线程：为什么同步问题通常在“线程共享内存”下最典型"><a href="#1-2-进程-vs-线程：为什么同步问题通常在“线程共享内存”下最典型" class="headerlink" title="1.2 进程 vs 线程：为什么同步问题通常在“线程共享内存”下最典型"></a>1.2 进程 vs 线程：为什么同步问题通常在“线程共享内存”下最典型</h3><blockquote>
 <p>在操作系统视角里，**进程（process）<strong>和</strong>线程（thread）**都可以理解为“正在运行的程序实体”，但它们的核心区别在于：<strong>资源隔离的边界在哪里</strong>。</p>
 <p><strong><font style="color:rgb(0, 0, 0);">进程是操作系统资源分配的最小单位</font></strong><font style="color:rgb(0, 0, 0);">,一个进程可以包含多个线程。每个进程都拥有独立的内存空间,系统再进行资源分配时会为进程分配独立的内存区域。而</font><strong><font style="color:rgb(0, 0, 0);">线程是执行程序的最小单位</font></strong><font style="color:rgb(0, 0, 0);">,多个线程共享同一个进程的内存空间。</font></p>
@@ -138,7 +138,7 @@
 </blockquote>
 <p>不需要记住所有字段，只要抓住一点：<strong>PCB &#x2F; <code>task_struct</code></strong> 是内核用来“记住一个执行实体是谁、跑到哪、拥有什么资源”的地方。</p>
 <!-- 这是一张图片，ocr 内容为： -->
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770023549547-d03222f8-71ba-46b7-9e13-87d331f05981.webp" alt="Terminologies used in Process Control Block"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770023549547-d03222f8-71ba-46b7-9e13-87d331f05981.webp" alt="Terminologies used in Process Control Block"></p>
 <h4 id="2-线程"><a href="#2-线程" class="headerlink" title="2) 线程"></a>2) 线程</h4><p>线程更像是进程内部的“执行流”。同一个进程内的多个线程，通常共享：</p>
 <ul>
 <li>同一份虚拟地址空间（也就是同一份代码&#x2F;全局变量&#x2F;堆内存等）</li>
@@ -162,7 +162,7 @@
 <li><strong>栈（stack）</strong>：每个线程<strong>各自独立</strong>的一块栈空间（局部变量一般线程私”，前提是你没把它的地址共享出去）</li>
 </ul>
 <!-- 这是一张图片，ocr 内容为： -->
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770025842045-bf9f3414-a54b-4e9c-8296-b3764d3c2f86.jpeg" alt="Linux进程在虚拟内存中的标准内存段布局"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770025842045-bf9f3414-a54b-4e9c-8296-b3764d3c2f86.jpeg" alt="Linux进程在虚拟内存中的标准内存段布局"></p>
 <p>结论非常直接：**同一进程的多个线程，会共享 data&#x2F;BSS&#x2F;heap 等区域。**这些区域里一旦有“可变共享数据”，就必须考虑并发访问的正确性，这就是同步问题最典型的来源。</p>
 <p>对比一下进程：不同进程的地址空间天然隔离，一个进程里 <code>counter++</code> 并不会直接把另一个进程的 <code>counter</code> 搞乱。而线程是“默认共享内存”，所以同步问题在多线程下几乎是“必考题”。</p>
 <h3 id="1-3-线程越多越好吗？"><a href="#1-3-线程越多越好吗？" class="headerlink" title="1.3 线程越多越好吗？"></a>1.3 线程越多越好吗？</h3><p><strong>线程数和性能之间通常不是线性关系</strong>，线程数增加到某个点以后，吞吐开始下降、延迟开始上升，出现一个“先好后坏”的拐点。</p>
@@ -208,7 +208,7 @@
 <h3 id="2-3-示例：多线程下的自增操作为什么线程不安全"><a href="#2-3-示例：多线程下的自增操作为什么线程不安全" class="headerlink" title="2.3 示例：多线程下的自增操作为什么线程不安全"></a>2.3 示例：多线程下的自增操作为什么线程不安全</h3><p>现在用最经典的例子把“交错执行”带来的问题落地：多个线程同时对一个共享计数器做 <code>++</code>。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> a = <span class="number">0</span>; <span class="comment">// 共享变量</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">add_one_million</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1&#x27;000&#x27;000</span>; ++i) &#123;</span><br><span class="line">        ++a; <span class="comment">// data race: 未同步的并发写</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="function">std::thread <span class="title">t1</span><span class="params">(add_one_million)</span></span>;</span><br><span class="line">    <span class="function">std::thread <span class="title">t2</span><span class="params">(add_one_million)</span></span>;</span><br><span class="line"></span><br><span class="line">    t<span class="number">1.</span><span class="built_in">join</span>();</span><br><span class="line">    t<span class="number">2.</span><span class="built_in">join</span>();</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;expected: 2000000\n&quot;</span>;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;actual:   &quot;</span> &lt;&lt; a &lt;&lt; <span class="string">&quot;\n&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770034005590-32a1b126-4679-457c-b280-6dbc026193b6.png" alt="程序的运行结果，结果不符合预期且每次运行结果各不相同"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770034005590-32a1b126-4679-457c-b280-6dbc026193b6.png" alt="程序的运行结果，结果不符合预期且每次运行结果各不相同"></p>
 <p>直觉上，如果 2 个线程各自执行 100 万次 <code>++</code>，结果应该是 200 万。但你把这段代码放到多线程里跑，常常会发现：最终结果<strong>小于预期</strong>，而且每次运行还可能不一样。</p>
 <p>关键原因在于：<code>++</code>** 看起来是“一步”，其实通常可以拆成三步完成**：</p>
 <ol>
@@ -224,7 +224,7 @@
 <li>线程 2 也加一写回 <code>a = 101</code></li>
 </ul>
 <p>你看，两个线程都做了“加一”，但结果只从 100 变成了 101，本该变成 102 的那一次增量就<strong>丢了</strong>。这就是为什么多线程下 <code>++</code> 会出现“算少了”的现象。</p>
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770033787247-c732de96-8462-4601-af4e-8910ffd9cbdd.png" alt="两张线程并发执行 a++ 操作时，因该操作拆分为读、改、写三步非原子操作，二者均读取主内存初始值 0 并本地加 1 后写回，最终主内存值为 1 而非预期的 2"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770033787247-c732de96-8462-4601-af4e-8910ffd9cbdd.png" alt="两张线程并发执行 a++ 操作时，因该操作拆分为读、改、写三步非原子操作，二者均读取主内存初始值 0 并本地加 1 后写回，最终主内存值为 1 而非预期的 2"></p>
 <blockquote>
 <p>更关键的是：在 C++ 的语义里，这种写法不仅“可能算错”，而是<strong>直接构成 data race，行为未定义</strong>。cppreference 的多线程与数据竞争章节甚至把这个例子作为典型反例，并明确标注为 undefined behavior；同时也展示了把 <code>int</code> 换成 <code>std::atomic&lt;int&gt;</code> 后就变为良定义行为。</p>
 </blockquote>
@@ -252,14 +252,14 @@
 <blockquote>
 <p>CS537 讲义把它描述为：策略导致某些线程在某些情况下长期不执行。</p>
 </blockquote>
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770034862410-a825e54c-9a56-4f1a-9075-c29a447d284f.webp" alt="当低优先级的新进程持续涌入时，原本优先级更高（优先级 5）的进程会因一直无法获得 CPU 执行权而陷入长期等待"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770034862410-a825e54c-9a56-4f1a-9075-c29a447d284f.webp" alt="当低优先级的新进程持续涌入时，原本优先级更高（优先级 5）的进程会因一直无法获得 CPU 执行权而陷入长期等待"></p>
 <ul>
 <li><strong>Livelock（活锁）</strong>：所有线程都在“忙”，但一直在做无效动作，仍然没有进展。</li>
 </ul>
 <blockquote>
 <p>CS537 讲义的表述非常直观：大家一直做事，但永远无法取得进展。</p>
 </blockquote>
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770034915381-3617d761-c5ed-4a41-a822-b04ade440f57.jpeg" alt="两个进程因进程表已满导致fork()调用失败后，不断重复重试却始终无法推进，处于看似忙碌但没有实际进展的状态"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770034915381-3617d761-c5ed-4a41-a822-b04ade440f57.jpeg" alt="两个进程因进程表已满导致fork()调用失败后，不断重复重试却始终无法推进，处于看似忙碌但没有实际进展的状态"></p>
 <hr>
 <h2 id="线程互斥（Mutual-Exclusion）"><a href="#线程互斥（Mutual-Exclusion）" class="headerlink" title="线程互斥（Mutual Exclusion）"></a>线程互斥（Mutual Exclusion）</h2><h3 id="原子操作（Atomic）：什么时候“无需锁”，什么时候“必须锁”"><a href="#原子操作（Atomic）：什么时候“无需锁”，什么时候“必须锁”" class="headerlink" title="原子操作（Atomic）：什么时候“无需锁”，什么时候“必须锁”"></a>原子操作（Atomic）：什么时候“无需锁”，什么时候“必须锁”</h3><p>在上一章你已经看到：对普通 <code>int</code> 做并发 <code>++</code>，不仅“可能算错”，在 C++ 语义里更是 <strong>data race → 未定义行为</strong>。这一章我们把视角切到 <code>std::atomic</code>：它能把哪些问题变成“良定义”，又在哪些地方<strong>绝对不该</strong>用 atomic 代替锁。</p>
 <h4 id="std-atomic-的基本语义（C-17）"><a href="#std-atomic-的基本语义（C-17）" class="headerlink" title="std::atomic 的基本语义（C++17）"></a><code>std::atomic</code> 的基本语义（C++17）</h4><p><code>std::atomic&lt;T&gt;</code> 的核心承诺很简单：<strong>对同一个原子对象的并发访问，语言层面给出清晰语义</strong>。你最常用的是两类操作：</p>
@@ -270,7 +270,7 @@
 <p>这就是为什么把共享变量从 <code>int</code> 换成 <code>std::atomic&lt;int&gt;</code> 后，多线程下的累加能稳定得到正确结果：你不再是在并发环境里“拆成三步地更新”，而是在做<strong>语言定义的原子 RMW</strong>。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;atomic&gt;</span></span></span><br><span class="line"></span><br><span class="line">std::atomic&lt;<span class="type">int</span>&gt; a&#123;<span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">add_one_million</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1&#x27;000&#x27;000</span>; ++i) &#123;</span><br><span class="line">        ++a; <span class="comment">// data race: 未同步的并发写</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="function">std::thread <span class="title">t1</span><span class="params">(add_one_million)</span></span>;</span><br><span class="line">    <span class="function">std::thread <span class="title">t2</span><span class="params">(add_one_million)</span></span>;</span><br><span class="line"></span><br><span class="line">    t<span class="number">1.</span><span class="built_in">join</span>();</span><br><span class="line">    t<span class="number">2.</span><span class="built_in">join</span>();</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;expected: 2000000\n&quot;</span>;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;actual:   &quot;</span> &lt;&lt; a &lt;&lt; <span class="string">&quot;\n&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770034228982-a1df33be-c6bc-4531-a006-eff857fc0018.png" alt="更换为原子操作后，结果变为正确的"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770034228982-a1df33be-c6bc-4531-a006-eff857fc0018.png" alt="更换为原子操作后，结果变为正确的"></p>
 <blockquote>
 <p><strong>atomic 解决的是“单变量原子性”，不是“任意逻辑一致性”</strong><br>把一个变量做成 atomic，只能保证这个变量的每次读写&#x2F;更新是良定义的；如果你的正确性依赖“多个共享状态一起保持某种关系”，那就已经超出 atomic 的能力边界。</p>
 </blockquote>
@@ -325,7 +325,7 @@
 <h4 id="atomic-的边界：为什么“复合不变量”仍需要锁"><a href="#atomic-的边界：为什么“复合不变量”仍需要锁" class="headerlink" title="atomic 的边界：为什么“复合不变量”仍需要锁"></a>atomic 的边界：为什么“复合不变量”仍需要锁</h4><p><code>std::atomic</code> 很容易被用过头：把 <code>x</code>、<code>y</code>、<code>state</code>、<code>size</code> 统统改成 atomic，然后下意识觉得“那整体就线程安全了”。问题在于，atomic 提供的是<strong>单个变量的原子性</strong>，而此时我们真正想要的往往是<strong>多个变量之间的整体一致性</strong>。</p>
 <p>先从“并发下最容易发生的事”说起：你的一次更新如果要改两个变量，哪怕每次 <code>store()</code> 都是原子的，这两次写入之间仍然存在一个窗口。在这个窗口里，另一个线程完全可能插进来读数据，于是它就会读到一个“半更新”的中间态。</p>
 <p>举个最简单的例子：你希望永远满足 <code>x &lt; y</code>，写线程要做的是“同时调整 x 和 y”。但现实是它只能先改一个，再改另一个；读线程只要恰好夹在中间，就能看到临时违反不变量的组合，比如 <code>x</code> 已经变大，而 <code>y</code> 还没来得及跟上。这里并不是 atomic “失效”，而是：<strong>你需要的是一次事务式更新（要么都变，要么都不变），atomic 给不了这种跨变量的一致性快照</strong>。</p>
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770037071430-706af7df-bc92-4d00-9c78-95a33766dfb1.png" alt="跨变量更新引发的不变量破坏问题"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770037071430-706af7df-bc92-4d00-9c78-95a33766dfb1.png" alt="跨变量更新引发的不变量破坏问题"></p>
 <p>更进一步，在多核系统里，如果你对多个变量进行读写而没有足够的同步&#x2F;约束，不同线程观察到“值变化的顺序”甚至可能不一致：一个线程看到 <code>x</code> 先变，另一个线程看到 <code>y</code> 先变。cppreference 对 <code>memory_order</code> 的说明就明确提到：当多个线程同时读写多个变量时，一个线程可能观察到的变化顺序不同于另一个线程写入顺序，甚至不同读线程之间观察到的顺序也可能不同。</p>
 <p>这句话的直观含义是：当你在做“复合状态更新”时，如果没有把它变成一个整体的同步单元，读者看到的世界可能是“拼接出来的”。</p>
 <p>所以一旦我们的正确性条件是跨多个共享状态的，例如：</p>
@@ -475,7 +475,7 @@
 <p><font style="color:rgb(32, 33, 34);">这个问题不考虑意大利面有多少，也不考虑哲学家的胃有多大。假设两者都是无限大。</font></p>
 <p><font style="color:rgb(32, 33, 34);">问题在于如何设计一套规则，使得在哲学家们在完全不交谈，也就是无法知道其他人可能在什么时候要吃饭或者思考的情况下，可以在这两种状态下永远交替下去。</font></p>
 </blockquote>
-<p><img src="/blog/blog/assets/posts/cpp17-concurrency/1770044838688-a7df3665-97c4-4128-b8a8-173b44de42fd.png"></p>
+<p><img src="/blog/assets/posts/cpp17-concurrency/1770044838688-a7df3665-97c4-4128-b8a8-173b44de42fd.png"></p>
 <p>哲学家就餐用来演示一个非常典型的活性风险：死锁。场景是环形资源：每个人需要两把叉才能吃。如果所有人都按同一种顺序拿叉（比如都先拿左叉），就可能出现：</p>
 <blockquote>
 <ul>
@@ -515,7 +515,7 @@
 
 </div>
 
-<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"></div><div class="item" id="next"><div class="note">较早文章</div><a href="/blog/2026/02/01/hello-world/">Hello World</a></div></section></div>
+
 
 
 
