@@ -1,0 +1,1217 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.33.1" theme-name="Stellar" theme-version="1.33.1">
+  
+  
+  <meta name="generator" content="Hexo 8.1.1">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+  <meta name="theme-color" content="#f9fafb">
+  <title>Socket Programming 实验启动教学：Liso 项目从启动到可解析请求 - Kam1L</title>
+
+  
+    <meta name="description" content="0. 前言本项目源于 CMU 课程作业项目 15-441: Computer Networks Project 1: A Web Server Called Liso。本文主要结合天津大学《计算机网络》课程中 Socket Programming 实验的具体要求进行讲解。  声明：本文为个人实验记录与理解总结，仅供参考。我更希望读者在理解原理的基础上自己实现，而不是直接复制粘贴本文代码（毕竟说要查">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Socket Programming 实验启动教学：Liso 项目从启动到可解析请求">
+<meta property="og:url" content="https://kamill7779.github.io/blog/2026/02/08/Socket%20Programming%20%E5%AE%9E%E9%AA%8C%E5%90%AF%E5%8A%A8%E6%95%99%E5%AD%A6%EF%BC%9ALiso%20%E9%A1%B9%E7%9B%AE%E4%BB%8E%E5%90%AF%E5%8A%A8%E5%88%B0%E5%8F%AF%E8%A7%A3%E6%9E%90%E8%AF%B7%E6%B1%82/">
+<meta property="og:site_name" content="Kam1L">
+<meta property="og:description" content="0. 前言本项目源于 CMU 课程作业项目 15-441: Computer Networks Project 1: A Web Server Called Liso。本文主要结合天津大学《计算机网络》课程中 Socket Programming 实验的具体要求进行讲解。  声明：本文为个人实验记录与理解总结，仅供参考。我更希望读者在理解原理的基础上自己实现，而不是直接复制粘贴本文代码（毕竟说要查">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://kamill7779.github.io/blog/assets/avatar.jpg">
+<meta property="article:published_time" content="2026-02-08T11:17:50.000Z">
+<meta property="article:modified_time" content="2026-02-08T11:35:56.000Z">
+<meta property="article:author" content="kamil.liu">
+<meta property="article:tag" content="http">
+<meta property="article:tag" content="liso">
+<meta property="article:tag" content="network">
+<meta property="article:tag" content="socket">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://kamill7779.github.io/blog/assets/avatar.jpg">
+  
+  
+  
+  <meta name="keywords" content="network,socket,liso,http">
+
+  <!-- feed -->
+  
+
+  <link rel="stylesheet" href="/blog/css/main.css?v=1.33.1">
+
+
+  
+    <link rel="shortcut icon" href="https://kamill7779.github.io/blog/assets/favicon.ico">
+  
+
+  
+
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kamil.liu","sameAs":[],"image":"https://kamill7779.github.io/blog/assets/avatar.jpg"},"dateCreated":"2026-02-08T19:17:50+08:00","dateModified":"2026-02-08T19:35:56+08:00","datePublished":"2026-02-08T19:17:50+08:00","description":"","headline":"Socket Programming 实验启动教学：Liso 项目从启动到可解析请求","mainEntityOfPage":{"@type":"WebPage","@id":"https://kamill7779.github.io/blog/2026/02/08/Socket%20Programming%20%E5%AE%9E%E9%AA%8C%E5%90%AF%E5%8A%A8%E6%95%99%E5%AD%A6%EF%BC%9ALiso%20%E9%A1%B9%E7%9B%AE%E4%BB%8E%E5%90%AF%E5%8A%A8%E5%88%B0%E5%8F%AF%E8%A7%A3%E6%9E%90%E8%AF%B7%E6%B1%82/"},"publisher":{"@type":"Organization","name":"kamil.liu","sameAs":[],"image":"https://kamill7779.github.io/blog/assets/avatar.jpg","logo":{"@type":"ImageObject","url":"https://kamill7779.github.io/blog/assets/avatar.jpg"}},"url":"https://kamill7779.github.io/blog/2026/02/08/Socket%20Programming%20%E5%AE%9E%E9%AA%8C%E5%90%AF%E5%8A%A8%E6%95%99%E5%AD%A6%EF%BC%9ALiso%20%E9%A1%B9%E7%9B%AE%E4%BB%8E%E5%90%AF%E5%8A%A8%E5%88%B0%E5%8F%AF%E8%A7%A3%E6%9E%90%E8%AF%B7%E6%B1%82/","keywords":"network, socket, liso, http","thumbnailUrl":"/blog/assets/posts/liso-socket-programming/image-20260208005724623.png","image":1}</script>
+  
+</head>
+<body>
+
+<div class="l_body content" id="start" layout="post" type="tech" ><aside class="l_left"><div class="sidebg"></div><div class="leftbar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="https://kamill7779.github.io/blog/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="https://kamill7779.github.io/blog/assets/avatar.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="https://kamill7779.github.io/blog/"><div class="main">Kam1L</div><div class="sub cap">博客 - 随笔分享</div></a></div></header>
+
+<div class="nav-area">
+
+<nav class="menu dis-select"><a class="nav-item active" title="首页" href="/blog/"><span>首页</span></a><a class="nav-item" title="时间线" href="/blog/timeline/"><span>时间线</span></a><a class="nav-item" title="关于" href="/blog/about/"><span>关于</span></a></nav>
+</div>
+<div class="widgets">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+<widget class="widget-wrapper related post-list"><div class="widget-header dis-select"><span class="name">专栏：网络系列</span></div><div class="widget-body"><a class="item active" href="/blog/2026/02/08/Socket%20Programming%20%E5%AE%9E%E9%AA%8C%E5%90%AF%E5%8A%A8%E6%95%99%E5%AD%A6%EF%BC%9ALiso%20%E9%A1%B9%E7%9B%AE%E4%BB%8E%E5%90%AF%E5%8A%A8%E5%88%B0%E5%8F%AF%E8%A7%A3%E6%9E%90%E8%AF%B7%E6%B1%82/"><span class="title">Socket Programming 实验启动教学：Liso 项目从启动到可解析请求</span><svg class="active-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M21 11.098v4.993c0 3.096 0 4.645-.734 5.321c-.35.323-.792.526-1.263.58c-.987.113-2.14-.907-4.445-2.946c-1.02-.901-1.529-1.352-2.118-1.47a2.225 2.225 0 0 0-.88 0c-.59.118-1.099.569-2.118 1.47c-2.305 2.039-3.458 3.059-4.445 2.945a2.238 2.238 0 0 1-1.263-.579C3 20.736 3 19.188 3 16.091v-4.994C3 6.81 3 4.666 4.318 3.333C5.636 2 7.758 2 12 2c4.243 0 6.364 0 7.682 1.332C21 4.665 21 6.81 21 11.098" opacity=".5"/><path fill="currentColor" d="M9 5.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5z"/></svg></a></div></widget>
+
+<widget class="widget-wrapper recent post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/blog/2026/02/08/Socket%20Programming%20%E5%AE%9E%E9%AA%8C%E5%90%AF%E5%8A%A8%E6%95%99%E5%AD%A6%EF%BC%9ALiso%20%E9%A1%B9%E7%9B%AE%E4%BB%8E%E5%90%AF%E5%8A%A8%E5%88%B0%E5%8F%AF%E8%A7%A3%E6%9E%90%E8%AF%B7%E6%B1%82/"><span class="title">Socket Programming 实验启动教学：Liso 项目从启动到可解析请求</span></a><a class="item title" href="/blog/2026/02/04/%E2%80%9C%E4%B8%80%E5%8A%B3%E6%B0%B8%E9%80%B8%E2%80%9D%20%E7%9A%84%E5%BC%80%E5%8F%91%E5%AE%B9%E5%99%A8%E5%85%A5%E9%97%A8%20%EF%BC%9ADocker%20%E5%AE%B9%E5%99%A8%20+%20VS%20Code%20%E5%85%A8%E6%B5%81%E7%A8%8B/"><span class="title">“一劳永逸” 的开发容器入门 ：Docker 容器 + VS Code 全流程</span></a><a class="item title" href="/blog/2026/02/02/C++17%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%95%B0%E6%8D%AE%E7%AB%9E%E4%BA%89%E5%88%B0%E4%B8%89%E5%A4%A7%E7%BB%8F%E5%85%B8%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/"><span class="title">C++17 并发编程：从数据竞争到三大经典同步问题</span></a></div></widget>
+</div>
+<footer class="footer dis-select"><div class="social-wrap"><a class="social" href="https://github.com/kamill7779" target="_blank" rel="external nofollow noopener noreferrer"><img src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/08a41b181ce68.svg"/></a><a class="social" href="mailto:kamill7779@outlook.com" rel="noopener noreferrer"><img src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/942ebbf1a4b91.svg"/></a><a class="social" href="https://kamill7779.github.io/blog/atom.xml" target="_blank" rel="external nofollow noopener noreferrer"><img src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/3616429.svg"/></a></div></footer>
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top"><img class="lazy bg" data-src="/blog/assets/posts/liso-socket-programming/image-20260208005105671.png">
+  <div class="content">
+    <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/blog/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" id="menu" href="/blog/topic/">专栏</a><span class="sep"></span><a class="cap breadcrumb" id="proj" href="/blog/2026/02/08/Socket%20Programming%20%E5%AE%9E%E9%AA%8C%E5%90%AF%E5%8A%A8%E6%95%99%E5%AD%A6%EF%BC%9ALiso%20%E9%A1%B9%E7%9B%AE%E4%BB%8E%E5%90%AF%E5%8A%A8%E5%88%B0%E5%8F%AF%E8%A7%A3%E6%9E%90%E8%AF%B7%E6%B1%82/">网络系列</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2026-02-08T11:17:50.000Z">2026-02-08</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2026-02-08T11:35:56.000Z">2026-02-08</time></span></div></div></div>
+    
+    <div class="bottom only-title">
+      
+      <div class="text-area">
+        <h1 class="text title"><span>Socket Programming 实验启动教学：Liso 项目从启动到可解析请求</span></h1>
+        
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><h2 id="0-前言"><a href="#0-前言" class="headerlink" title="0. 前言"></a>0. 前言</h2><p>本项目源于 CMU 课程作业项目 <strong>15-441: Computer Networks Project 1: A Web Server Called Liso</strong>。本文主要结合天津大学《计算机网络》课程中 Socket Programming 实验的具体要求进行讲解。</p>
+<blockquote>
+<p><strong>声明</strong>：本文为个人实验记录与理解总结，<strong>仅供参考</strong>。我更希望读者在理解原理的基础上自己实现，而不是直接复制粘贴本文代码（毕竟说要查重的）；不同环境&#x2F;版本下细节可能存在差异。若你发现文中错误，欢迎邮件联系我（请在邮件标题注明 <em>Liso&#x2F;Lab1</em>），我会尽量核实并更新。</p>
+</blockquote>
+<p>基于学校提供的参考资料、Socket 编程实践指导书，以及四周任务完成表，整体实验难度已经有所下降。但在这一前提下，项目的<strong>启动阶段</strong>依然是最容易卡住的部分。  因此，本文的目标是帮助我们在项目前期抓住重点，并对课程中尚未涉及或涉及较少的内容做补充说明，重点放在“如何顺利启动项目”这件事上。</p>
+<blockquote>
+<p>实际上，项目的核心难点集中在第一周，以及第四周：在需要理解 IO 多路复用的前提下，还要完成较大规模的代码重构。相比之下，第二、第三周任务主要是根据 RFC 文档对协议文本做正确处理。</p>
+</blockquote>
+<hr>
+<h2 id="1-项目启动流程"><a href="#1-项目启动流程" class="headerlink" title="1. 项目启动流程"></a>1. 项目启动流程</h2><h3 id="1-1-基础设施1：Docker"><a href="#1-1-基础设施1：Docker" class="headerlink" title="1.1. 基础设施1：Docker"></a>1.1. 基础设施1：Docker</h3><p>先不着急上手代码。这个项目的基础设施是 Docker。  如果对 Docker 还不熟悉，我们可以先阅读这篇入门文章：  <a href="https://kamill7779.github.io/blog/2026/02/04/%E2%80%9C%E4%B8%80%E5%8A%B3%E6%B0%B8%E9%80%B8%E2%80%9D%20%E7%9A%84%E5%BC%80%E5%8F%91%E5%AE%B9%E5%99%A8%E5%85%A5%E9%97%A8%20%EF%BC%9ADocker%20%E5%AE%B9%E5%99%A8%20+%20VS%20Code%20%E5%85%A8%E6%B5%81%E7%A8%8B/">“一劳永逸”的开发容器入门：Docker 容器 + VS Code 全流程</a>，可以动手操作一下熟悉连接开发容器的流程。</p>
+<p>如果希望使用 VS Code 连接开发容器开发，你还需要修改一下 Dockerfile ，完整修改如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># base image</span></span><br><span class="line"><span class="keyword">FROM</span> debian:bookworm-slim</span><br><span class="line"><span class="comment"># make necessary directories</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apt-get update &amp;&amp;\</span></span><br><span class="line"><span class="language-bash">    apt-get -y install gcc flex bison build-essential siege apache2-utils libssl-dev &amp;&amp;\</span></span><br><span class="line"><span class="language-bash">    <span class="comment"># change ApacheBench request HTTP version to 1.1</span></span></span><br><span class="line">    perl -pi -e <span class="string">&#x27;s/HTTP\/1.0/HTTP\/1.1/g&#x27;</span> /usr/bin/ab</span><br><span class="line"></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /home</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>使用原始 ubuntu 18.04 时，VS Code Remote Container 会因 glibc 版本问题无法连接；而部分较新 Ubuntu 标签在拉取或兼容性上容易出现额外问题，因此这里选择 debian:bookworm-slim 作为稳定方案。</p>
+</blockquote>
+<p>随后创建并在 <code>./devcontainer</code> 创建 <code>devcontainer.json</code> 配置（具体作用参考上面的文章）：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;liso&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;containerName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;liso&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;build&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;dockerfile&quot;</span><span class="punctuation">:</span> <span class="string">&quot;../DockerFile&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;context&quot;</span><span class="punctuation">:</span> <span class="string">&quot;..&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;workspaceFolder&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/home/project-1&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;workspaceMount&quot;</span><span class="punctuation">:</span> <span class="string">&quot;source=$&#123;localWorkspaceFolder&#125;,target=/home/project-1,type=bind,consistency=cached&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;runArgs&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;-p&quot;</span><span class="punctuation">,</span> <span class="string">&quot;127.0.0.1:8888:15441&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>每次使用 VS Code 连接开发容器都能够按照要求进行挂载和端口映射了。</p>
+<p>必须使用 <code>&quot;runArgs&quot;: [&quot;-p&quot;, &quot;127.0.0.1:8888:15441&quot;]</code> ，是为了把容器内 15441 端口稳定、明确地映射到宿主机 IPv4 地址 <code>127.0.0.1 (line 8888)</code>，避免只走 VS Code 自动转发导致的 IPv6&#x2F;IPv4 访问不一致问题。</p>
+</blockquote>
+<h3 id="1-2-项目架构1：服务端与客户端"><a href="#1-2-项目架构1：服务端与客户端" class="headerlink" title="1.2. 项目架构1：服务端与客户端"></a>1.2. 项目架构1：服务端与客户端</h3><p>首先不去深究原因，我们来完成如下操作，进行项目的一个小启动帮助我们理解项目架构：</p>
+<p>按下 <code>Ctrl + ~</code> （ Esc 下面那个键）启动终端，这里我们需要两个终端：</p>
+<p><img src="/blog/assets/posts/liso-socket-programming/image-20260208005724623.png" alt="image-20260208005724623"></p>
+<p>确保我们在 <code>/home/project-1</code> 目录下:</p>
+<p><img src="/blog/assets/posts/liso-socket-programming/image-20260208005105671.png" alt="image-20260208005105671"></p>
+<p>任选其一，输入命令 <code>make</code> ，等待成功后输入 <code>./echo_server</code> ，你会看到终端状态如下，且没有其他的输出：</p>
+<p><img src="/blog/assets/posts/liso-socket-programming/image-20260208010219424.png" alt="image-20260208010219424"></p>
+<blockquote>
+<p>make 的输出只要不存在 error 这种词都是正常的，make 根据 Makefile 中的定义，自动执行了一些 bash 命令，为我们生成了可执行文件，和 Dockerfile 有着相似的作用。</p>
+</blockquote>
+<p>此时如果比较细心，你会发现在 make 后生成了很多文件，他们有的是项目编译生成的源文件，有的是可执行文件，还有一部分是词法&#x2F;语法分析器生成的中间产物，在这里我们先不多介绍。</p>
+<p>随后切换到一个新的终端，输入命令 <code>./echo_client localhost 9999</code> ，在你感觉好像卡住了之后随便输入点什么，效果是这样的：</p>
+<p><img src="/blog/assets/posts/liso-socket-programming/image-20260208010836410.png" alt="image-20260208010836410"></p>
+<p>这里的逻辑是：<code>echo_client</code> 会向 <code>localhost:9999</code> 发送我们刚刚写的消息，随后被 <code>echo_server</code> 监听到后重新发回给我们，因此你可以花几分钟实践初读一下代码，尝试理解一下这个流程。</p>
+<p>因此你就可以理解我们这个项目的最终目的：浏览器充当 <code>echo_client</code> 的角色向 <code>echo_server</code> 发送课上所学的 <code>HTTP</code> 报文（在代码中，我们从 <code>TCP</code> 连接中得到报文的文本形式，然后在提取一些我们想要的信息）</p>
+<h3 id="1-3-项目架构2：核心方法-parse"><a href="#1-3-项目架构2：核心方法-parse" class="headerlink" title="1.3. 项目架构2：核心方法 parse()"></a>1.3. 项目架构2：核心方法 <code>parse()</code></h3><p>新建一个终端，随后输入：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./example samples/sample_request_example</span><br></pre></td></tr></table></figure>
+
+<p>你会看到如下输出：</p>
+<p><img src="/blog/assets/posts/liso-socket-programming/image-20260208012741342.png" alt="image-20260208012741342"></p>
+<p>注意：如果在这里出现 Parsing Failed 或随后 Segmentation fault，很可能不是业务逻辑写错，而是<strong>换行符格式不匹配</strong>。</p>
+<p>**原因在于：**解析器按 HTTP 报文标准使用 CRLF（\r\n）作为行结束符；但很多编辑器或环境会把文本保存成仅有 LF（\n），导致词法规则无法识别请求行结束，从而解析失败。</p>
+<blockquote>
+<p>这类问题在 Linux 和 Windows 之间尤其常见：Linux&#x2F;Unix 默认使用 LF，Windows 传统上使用 CRLF。当我们在不同系统间拷贝样例文件、用不同编辑器保存，或者通过 Git 自动转换行尾时，文件内容看起来“没区别”，但底层字节序列已经改变。</p>
+</blockquote>
+<p>如果出现这样的问题，我们可以这样操作：</p>
+<p><img src="/blog/assets/posts/liso-socket-programming/image-20260208013613249.png" alt="image-20260208013613249"></p>
+<p>然后再输入上述指令就能得到正确结果了。</p>
+<p>如果不去阅读 <code>example.c</code> 的代码我们会认为可能是这样处理的：HTTP 请求不就是一段字符串吗？那我们直接找 “GET”，再找几个冒号换行空格，按位置截取不就好了。</p>
+<p>这个思路在最简单样例里似乎可行，但一旦进入真实请求，它会很快失效。首先是<strong>格式</strong>问题。HTTP 报文并不是“固定模板字符串”，而是由方法、URI、版本、可选空白、多个首部行、可选请求体共同组成，字段顺序和数量都可能变化。只靠 strstr、strtok 一类“硬切字符串”的方式，面对额外空格、大小写差异、重复首部、管线请求（pipelining）或半包读取时，都会出现误判甚至越界。</p>
+<p>其次是<strong>性能与可维护性</strong>问题。字符串全局搜索和反复拷贝在请求量上来后开销明显，而且逻辑分散在大量“if-else + 指针偏移”中，调试和扩展都很痛苦。</p>
+<p>带着这个问题我们去阅读 <code>example.c</code> 的代码，我们会发现：主流程里几乎没有任何“手写字符串切割”逻辑，核心只有这一句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Request *request = parse(buf, readRet, fd_in); </span><br></pre></td></tr></table></figure>
+
+<p>也就是说，代码中<code>open + read</code> 读进来的原始报文，经过一次 parse() 调用，就被转换成了 <code>Request</code> 对象；后面的代码只是在打印 http_method、http_uri、http_version 和 headers。这和我们最开始“写一堆 strstr&#x2F;strtok 手工切字符串”的想象完全不同：真正复杂的工作被封装进了解析器内部。</p>
+<p>这也正是这个项目的关键点。我们接下来不是去堆更多字符串技巧，而是先要理解这样的几个问题：</p>
+<ol>
+<li>parse() 是如何把文本变成结构体的？</li>
+<li>为什么现在的结构不支持多行 Header ? 我们应该如何拓展？</li>
+</ol>
+<h2 id="2-代码解析"><a href="#2-代码解析" class="headerlink" title="2. 代码解析"></a>2. 代码解析</h2><h3 id="2-1-基础设施2：编译原理与-parse"><a href="#2-1-基础设施2：编译原理与-parse" class="headerlink" title="2.1. 基础设施2：编译原理与 parse()"></a>2.1. 基础设施2：编译原理与 <code>parse()</code></h3><h4 id="2-1-1-状态机与分帧"><a href="#2-1-1-状态机与分帧" class="headerlink" title="2.1.1. 状态机与分帧"></a>2.1.1. 状态机与分帧</h4><p>点进 parse() 后，我们会先看到一开始有一段莫名其妙的代码，实际上这就是<strong>有限状态机</strong>的代码实现，但它其实是在解决一个非常现实的问题：<strong>我们必须先知道“头部到哪里结束了”，才能谈解析</strong>。HTTP&#x2F;1.1 里头部结束符是 <code>\r\n\r\n</code>，所以这段状态机不是在“理解 GET&#x2F;POST”，而是在做“报文分帧（framing）”。</p>
+<blockquote>
+<p>为什么要这样处理，而不是直接丢给 yyparse()？</p>
+<ol>
+<li><strong>避免把不完整数据交给语法解析器</strong>：网络读取天然可能出现半包。一次 recv 读到的可能只是 GET &#x2F; HTTP&#x2F;1.1\r\nHo。如果这时就调用语法解析就不能成功，而且这个失败是因为“数据还没收全”。先用状态机找 <code>\r\n\r\n</code>，能保证进入语法层的是“完整头部”。</li>
+<li><strong>把“边界问题”和“语义问题”拆开</strong><br> 状态机只负责回答：头部是否完整、结束在哪。lex&#x2F;yacc 才负责回答：方法是否合法、header 格式对不对。<br> 这样分层后，错误定位非常清楚：<ul>
+<li>找不到 \r\n\r\n：是分帧阶段问题（可能数据未收全或格式损坏）</li>
+<li>yyparse() 失败：是语法阶段问题（字段结构不符合规则）</li>
+</ul>
+</li>
+<li><strong>性能和稳定性更好</strong><br> 状态机是一趟线性扫描，O(n)，几乎不分配额外内存。<br> 相比“到处 strstr 搜索 + 多次切片拷贝”，这种方式更可控，也更适合后续处理 pipelining 和并发连接。</li>
+</ol>
+</blockquote>
+<p>对于如下的示例报文：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST /login HTTP/1.1\r\n</span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>localhost:8888\r\n</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>11\r\n</span><br><span class="line">\r\n</span><br><span class="line">hello=world</span><br></pre></td></tr></table></figure>
+
+<p>状态机只盯这 4 个字节序列：</p>
+<ol>
+<li>读到 \r：STATE_START -&gt; STATE_CR</li>
+<li>接着读到 \n：STATE_CR -&gt; STATE_CRLF</li>
+<li>接着读到 \r：STATE_CRLF -&gt; STATE_CRLFCR</li>
+<li>接着读到 \n：STATE_CRLFCR -&gt; STATE_CRLFCRLF（命中，停止扫描）</li>
+</ol>
+<p>也就是寻找头部的边界，而并去未处理任何语义，也不会去处理Request Body。<strong>处理之后我们得到的变量 <code>i</code> 就是头部的长度！</strong></p>
+<h4 id="2-1-2-TODO-与-parser-y"><a href="#2-1-2-TODO-与-parser-y" class="headerlink" title="2.1.2. TODO 与 parser.y"></a>2.1.2. <code>TODO</code> 与 <code>parser.y</code></h4><p>我们大概理解这个状态机在做什么就行，后续也不需要修改他的代码，重点是来到了 <code>TODO</code> ，这里是实验留给我们的任务中<strong>最关键</strong>的一步：我们要实现解析多行 Header 究竟要如何实现？</p>
+<p>到这里我们可能会踏足第一个误区而一头雾水：点进 <code>yyparse()</code> 方法试图观察是如何处理的，但是会发现进入了一个包含一千五百多行代码的文件中，根本看不懂，实际上包括它在内的几个文件 <code>y.tab.c</code> <code>y.tab.h</code> <code>lex.yy.c</code> ，都是编译出的的<strong>中间产物</strong>，如果我们在终端中执行 <code>make clean</code> 操作，他们就都不见了。那么知道了这一点，结合文件名来看，仅剩下的 <code>parser.y</code> 就理所当然成了我们分析的重点。（至于 lexer.l，不需要改。它的职责是把输入字符切分成 token（例如方法名、空格、冒号、CRLF、普通 token 字符等））</p>
+<h4 id="2-1-3-文法规则与推导"><a href="#2-1-3-文法规则与推导" class="headerlink" title="2.1.3. 文法规则与推导"></a>2.1.3. 文法规则与推导</h4><p>来到 <code>parser.y</code> ，注释也给出了我们需要拓展的地方，我直接介绍这部分到底在完成一个什么样的事情，然后你就能明白整个文件大概是在干什么了，视角来到这个文件的 200 行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">request_line: token t_sp text t_sp text t_crlf &#123;</span><br><span class="line">	YPRINTF(&quot;request_Line:\n%s\n%s\n%s\n&quot;,$1, $3,$5);</span><br><span class="line">    strcpy(parsing_request-&gt;http_method, $1);</span><br><span class="line">	strcpy(parsing_request-&gt;http_uri, $3);</span><br><span class="line">	strcpy(parsing_request-&gt;http_version, $5);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">request_header: token ows t_colon ows text ows t_crlf &#123;</span><br><span class="line">	YPRINTF(&quot;request_Header:\n%s\n%s\n&quot;,$1,$5);</span><br><span class="line">    strcpy(parsing_request-&gt;headers[parsing_request-&gt;header_count].header_name, $1);</span><br><span class="line">	strcpy(parsing_request-&gt;headers[parsing_request-&gt;header_count].header_value, $5);</span><br><span class="line">	parsing_request-&gt;header_count++;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line"> * You need to fill this rule, and you are done! You have all the assembly</span><br><span class="line"> * needed. You may wish to define your own rules. Please read RFC 2616.</span><br><span class="line"> * All the best!</span><br><span class="line"> *</span><br><span class="line"> */</span><br><span class="line">request: request_line request_header t_crlf&#123;</span><br><span class="line">	YPRINTF(&quot;parsing_request: Matched Success.\n&quot;);</span><br><span class="line">	return SUCCESS;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>首先，大括号包裹的部分是一些要执行的代码，理解这部分的重点不在于此，我们重点去观察前面这种我们从未见过的部分：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">request_line: token t_sp text t_sp text t_crlf;</span><br><span class="line">request_header: token ows t_colon ows text ows t_crlf;</span><br><span class="line">request: request_line request_header t_crlf;</span><br></pre></td></tr></table></figure>
+
+<p>它们可以理解为“一个符号如何展开成更小的符号”，和我们学过的文法推导非常像。为了直观，我们先看一个小例子：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A -&gt; B E </span><br><span class="line">B -&gt; C D </span><br></pre></td></tr></table></figure>
+
+<p>那么 A 就可以继续展开成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A -&gt; C D E </span><br></pre></td></tr></table></figure>
+
+<p>如果再加一条“归约规则”（把一段组合再折叠回一个新符号）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C D E -&gt; F </span><br></pre></td></tr></table></figure>
+
+<p>那我们就能得到：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A -&gt; F </span><br></pre></td></tr></table></figure>
+
+<p>这就是 parser 在做的核心动作：<strong>先按规则展开&#x2F;匹配，再把匹配到的片段归约成一个更高层的结构</strong>。</p>
+<p>那么就不难理解，我们实际代码中的 request, request_line, request_header 这些符号，就是我们例子中的 A, B, C，结合这些单词的含义不难得出，这些行的真实含义是这样的：</p>
+<ol>
+<li>一个<strong>请求</strong>由请求行、请求头和末尾空行组成：request -&gt; request_line request_header t_crlf</li>
+<li>一个<strong>请求行</strong>由一个符号、空格、文本、空格、文本和末尾换行组成：request_line -&gt; token t_sp text t_sp text t_crlf</li>
+<li>一个<strong>请求头</strong>由一个符号、可选空白（187行有他的定义，用 <code>|</code> 连接表示它有多重的展开方式）、冒号、可选空白、文本、可选空白和末尾换行组成：request_header -&gt; token ows t_colon ows text ows t_crlf</li>
+</ol>
+<h4 id="2-1-4-多行-Header"><a href="#2-1-4-多行-Header" class="headerlink" title="2.1.4. 多行 Header"></a>2.1.4. 多行 Header</h4><p>也就是说在这里，因为 <code>request -&gt; request_line request_header t_crlf</code> 这一行就规定了只有一个 <code>request_header</code> ，如果写成 <code>request -&gt; request_line request_header request_header t_crlf</code> 就能解析两行了嘛，那么对于这种 <code>header</code> 总数量无法预知的情况来说我们该如何写呢？在这里你可以自行思考一下。</p>
+<p>答案是这样的：我们先将 <code>request: request_line request_header t_crlf</code> 修改为 <code>request: request_line request_headers t_crlf</code> （加了个s）然后将 <code>request_headers</code> 定义为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">request_headers:</span><br><span class="line">    /* empty */</span><br><span class="line">  | request_headers request_header</span><br><span class="line">  ;</span><br></pre></td></tr></table></figure>
+
+<p>代表着 <code>request_headers</code> 可以被解析为空（就不会拓展了），也可以从 <code>request_headers</code> 变为 <code>request_headers request_header</code>两个符号。</p>
+<p>对于只有一行请求头的请求体，<code>request_headers</code> 先变成 <code>request_headers request_header</code> ，然后前面的 <code>request_headers</code> 变为空，最终就只剩下了一个 <code>request_header</code> 。</p>
+<p>对于有三行请求头的请求体，<code>request_headers</code> 先变成 <code>request_headers request_header</code> ，然后前面的 <code>request_headers</code> 再变为<code>request_headers request_header</code>，然后再这样变一次，就变成了 <code>request_headers request_header request_header request_header</code>，最终 <code>request_headers </code>再变为空，就剩下了三个 <code>request_header</code> 。</p>
+<p>按照这种逻辑，不难得出这样做的话就可以支持任意个 <code>request_header</code> 出现在请求体中了。</p>
+<blockquote>
+<p>事实上，lexer 被称之为<strong>词法分析器</strong>，它任务是把原始字符串切成一个个“词”（token），并给它们分类，比如 token、t_sp、t_colon、t_crlf、text 等。它不关心“这一整段是不是一个合法请求”，只负责把输入变成可处理的符号序列。parser <strong>语法分析器</strong>的任务是根据我们在 <code>parser.y</code> 里写的<strong>文法规则</strong>（也就是上面的过程），对这些 token 序列做<strong>匹配</strong>和<strong>归约</strong>。只有当符号排列满足某条规则时，规则后面大括号里的语义动作才会执行。这二者背后都依赖<strong>成熟且复杂的编译原理算法</strong>：例如词法层常用正则到自动机（NFA&#x2F;DFA）的构造与状态转移；语法层则有 LL&#x2F;LR 等体系（如 LR(1)、LALR(1)），通常通过先生成分析表（action&#x2F;goto），运行时再按“查表 + 移进&#x2F;归约”完成解析。该项目使用了 <code>yacc</code> 这样成熟的生成器去自动生成中间代码（Makefile 中定义了将 <code>.l</code> 和 <code>.y</code> 生成为中间 <code>.c</code> 和 <code>.h</code> 产物，然后我们自己的代码就可以用了），从而省略了我们自己实现这些复杂代码的过程。</p>
+</blockquote>
+<p>所以在这一步里，我们真正完成的事情是：通过 request_headers 的递归定义，让语法层支持“任意多行 header”；而在每次匹配到 request_header 时，执行对应语义代码，把 header_name&#x2F;header_value 追加写入 Request 结构体的 headers 字段。换句话说：词法层负责“切词并分类”，语法层负责“按规则组句并落结构体”。</p>
+<h4 id="2-1-5-headers-扩容"><a href="#2-1-5-headers-扩容" class="headerlink" title="2.1.5. headers 扩容"></a>2.1.5. headers 扩容</h4><p>随后我们去拓展 <code>request_header: token ows t_colon ows text ows t_crlf</code> 后大括号的这一段，大括号代表着当我们的输入匹配到这一段的时候要执行怎样的代码，当前的主体代码是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">strcpy(parsing_request-&gt;headers[parsing_request-&gt;header_count].header_name, $1);</span><br><span class="line">strcpy(parsing_request-&gt;headers[parsing_request-&gt;header_count].header_value, $5);</span><br><span class="line">parsing_request-&gt;header_count++;</span><br></pre></td></tr></table></figure>
+
+<p>不难看出我们每一次都给 <code>headers</code> 里面加入新的东西，然后让 header 的数量加一，下一次就能添加新的东西了，那么问题是我们定义的这个 <code>headers</code> 数组有多大？假设我存在很多很多的 header 他<strong>是否装得下</strong>呢？如果我将这个数组开得非常非常大，在高并发下是不是又<strong>消耗了太多资源</strong>呢？</p>
+<p>在 <code>parse.c</code> 中，我们发现目前的实现是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//TODO You will need to handle resizing this in parser.y</span></span><br><span class="line">request-&gt;headers = (Request_header *) <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(Request_header)*<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+
+<p>也就是我们只给 <code>headers</code> 分配了能存放一个 <code>Request_header</code> 大小的空间，TODO 也提示我们了要实现 <code>risizing</code>  ，也就是要在 <code>parser.y</code> 中写扩容代码，在 <code>headers</code> 的容量被填满的时候再为他分配额外的空间，相信在学习数据结构的时候你已经明白：（1）如何去<strong>正确</strong>实现扩容代码，（2）如何<strong>高性能</strong>实现扩容。</p>
+<blockquote>
+<p>（1）正确实现扩容的关键是严格遵循容量增长后对<strong>内存重新分配、边界检查与元素拷贝&#x2F;移动</strong>的完整流程，确保数据不丢失且指针与元数据一致。<br> （2）高性能扩容的关键是采用合理的<strong>增长策略</strong>（如倍增）、最小化拷贝次数并优先使用连续内存和批量移动，以降低摊销成本并减少缓存失效。</p>
+</blockquote>
+<p><strong>标准做法：</strong></p>
+<p>在 <code>parse.h</code> 中新增一个 <code>int header_capacity</code> 字段用来记录容量：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="type">char</span> http_version[<span class="number">50</span>];</span><br><span class="line">	<span class="type">char</span> http_method[<span class="number">50</span>];</span><br><span class="line">	<span class="type">char</span> http_uri[<span class="number">4096</span>];</span><br><span class="line">	Request_header *headers;</span><br><span class="line">	<span class="type">int</span> header_count;</span><br><span class="line">	<span class="type">int</span> header_capacity;</span><br><span class="line">&#125; Request;</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>parse.c</code> 中初始化容量：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//TODO You will need to handle resizing this in parser.y</span></span><br><span class="line">request-&gt;header_capacity = <span class="number">8</span>;</span><br><span class="line">request-&gt;headers = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(Request_header) * request-&gt;header_capacity);</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>parse.y</code> 对应代码块中添加扩容代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">request_header: token ows t_colon ows text ows t_crlf &#123;</span><br><span class="line">	YPRINTF(&quot;request_Header:\n%s\n%s\n&quot;,$1,$5);</span><br><span class="line"></span><br><span class="line">	// 动态扩容 headers 数量</span><br><span class="line">	if (parsing_request-&gt;header_count &gt;= parsing_request-&gt;header_capacity) &#123;</span><br><span class="line">        parsing_request-&gt;header_capacity *= 2;</span><br><span class="line">        parsing_request-&gt;headers = realloc(parsing_request-&gt;headers,</span><br><span class="line">            sizeof(Request_header) * parsing_request-&gt;header_capacity);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    strcpy(parsing_request-&gt;headers[parsing_request-&gt;header_count].header_name, $1);</span><br><span class="line">	strcpy(parsing_request-&gt;headers[parsing_request-&gt;header_count].header_value, $5);</span><br><span class="line">	parsing_request-&gt;header_count++;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>realloc 语义与用法</strong>：realloc(ptr, new_size) 会调整一块已分配内存的大小：</p>
+<ul>
+<li>如果 ptr 为 NULL，等价于 malloc(new_size)。</li>
+<li>如果 new_size 为 0，行为等价于 free(ptr)（返回值实现相关，通常为 NULL）。</li>
+<li>可能<strong>原地扩展</strong>，也可能<strong>分配新内存并拷贝原数据</strong>；成功返回新指针，失败返回 NULL，<strong>原指针仍有效</strong>。</li>
+</ul>
+</blockquote>
+<p>当然，也可以实现计算单个 <code>Request_header</code> 结构体的大小，在增加前计算并扩容，这样不需要新增 <code>header_capacity</code> 字段，但是其可维护性和性能会有损失。</p>
+<p>到这里位置，我们再次 <code>make</code> 并运行 <code>./example samples/request_get </code> 就能得到正确的结果了（对于这种多行 Header 的文件之前是会出错的，之前只能执行 <code>samples\sample_request_example</code> ）</p>
+<p><img src="/blog/assets/posts/liso-socket-programming/image-20260208153516939.png" alt="image-20260208153516939"></p>
+<blockquote>
+<p>提示：确保你打开 <code>samples/request_get</code> 文件后左下角显示的是 <code>CRLF</code> 而非 <code>LF</code> ，否则需要先修改一下~</p>
+</blockquote>
+<h3 id="2-2-进程间通信"><a href="#2-2-进程间通信" class="headerlink" title="2.2. 进程间通信"></a>2.2. 进程间通信</h3><p><code>example.c</code> 是给出了一个使用 <code>parse()</code> 解析一个完整 HTTP 报文的过程，但是 <code>echo_server.c</code> 的代码里并没有真正去使用 <code>parse()</code> 这个函数，因此我们需要阅读其代码，明确两点：（1）原本的项目结构是如何实现与 <code>echo_client</code> 通信的；（2）如何在正确的位置拓展并正确使用 <code>parse()</code> 方法。</p>
+<h4 id="2-2-1-文件系统与文件描述符"><a href="#2-2-1-文件系统与文件描述符" class="headerlink" title="2.2.1. 文件系统与文件描述符"></a>2.2.1. 文件系统与文件描述符</h4><p>在进入通信代码之前，我们先回顾两个<strong>最基础</strong>的概念：<strong>文件系统</strong>和<strong>文件描述符</strong>。这两个概念后面会频繁出现：</p>
+<p><strong>一、文件系统是什么？</strong></p>
+<p>可以理解成：操作系统用来管理可读写对象的机制。磁盘文件是文件，终端是文件，我们用的屏幕和鼠标都是文件，<strong>网络连接在系统里也被当成一种文件</strong>来处理。所以系统提供了一套统一的接口去读写这些对象。我们可以对文件进行<strong>读写操作</strong>。</p>
+<p><strong>二、文件描述符是什么？</strong></p>
+<p>当你打开一个文件，或者建立一个网络连接，系统会返回一个整数编号。这个编号就是文件描述符，它的作用很简单：告诉系统你要读写哪个对象。因此你会看到很多函数都是 <code>read(fd, ...)</code>、<code>write(fd, ...)</code>、<code>close(fd)</code>——它们读写的对象其实就是 fd 指向的那个东西。</p>
+<p>在代码中，<strong>socket 连接本质上也是一个文件描述符</strong>，只是它代表的是一条网络连接，操作系统将一个 <code>socket</code> 抽象为一个文件，我们对它进行读写就可以，至于如何发送以及各自机制都是由底层来实现的。</p>
+<p>有了这个最基础的认识，我们再来看项目里的进程间通信。</p>
+<ul>
+<li><code>echo_client</code>：客户端，用来发消息</li>
+<li><code>echo_server</code>：服务器，用来收消息并回发</li>
+</ul>
+<p>目前它们的关系非常简单：<code>echo_client</code> 连上 <code>echo_server</code>，发出一段字符串，服务器再把这段字符串原样回给它。</p>
+<h4 id="2-2-2-通信简历流程"><a href="#2-2-2-通信简历流程" class="headerlink" title="2.2.2. 通信简历流程"></a>2.2.2. 通信简历流程</h4><p><strong>一、服务器 <code>echo_server.c</code> 在做什么？</strong></p>
+<p>服务器是标准的 TCP 服务器流程：</p>
+<ol>
+<li><strong><code>socket()</code> 创建监听端口</strong></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sock = socket(PF_INET, SOCK_STREAM, 0);</span><br></pre></td></tr></table></figure>
+
+<p>参数中：<code>PF_INET</code> 表示 IPv4 协议族（和 <code>AF_INET</code> 等价），<code>SOCK_STREAM</code> 表示 TCP（面向连接的字节流），<code>0</code> 表示使用默认协议（在这里就是 TCP）。这些常量在 <code>socket.h</code> 和 <code>in.h</code> 里定义。</p>
+<p>返回值是<strong>文件描述符</strong>，成功时是非负整数，失败返回 <code>-1</code>。</p>
+<ol start="2">
+<li><strong><code>bind()</code> 绑定端口号</strong></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bind(sock, (struct sockaddr *) &amp;addr, sizeof(addr));</span><br></pre></td></tr></table></figure>
+
+<p><code>addr</code> 是 <code>struct sockaddr_in</code>（定义在 <code>in.h</code>），我们在前面把它的字段填好了：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">addr.sin_family = AF_INET; // 指定 IPv4</span><br><span class="line">addr.sin_port = htons(ECHO_PORT); // 指定端口号（网络字节序）</span><br><span class="line">addr.sin_addr.s_addr = INADDR_ANY; // 表示监听所有本机网卡地址</span><br></pre></td></tr></table></figure>
+
+<p><code>bind</code> 成功返回 <code>0</code>，失败返回 <code>-1</code>。</p>
+<ol start="3">
+<li><strong><code>listen()</code> 开始监听</strong></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">listen(sock, 5);</span><br></pre></td></tr></table></figure>
+
+<p><code>5</code> 是等待连接的队列长度（<strong><code>backlog</code></strong>），表示最多允许多少个未处理的连接排队（全连接和半连接的个数，回顾一下三次握手）。</p>
+<p><code>listen()</code> 的作用是让内核开始为这个 <code>socket</code> 建立连接等待队列（<strong><code>backlog</code></strong>）。一旦 <code>echo_client</code> 发起连接，<code>accept()</code> 返回一个新的文件描述符，<code>echo_server</code> 程序进入处理逻辑。由于目前 <code>echo_client</code> 是<strong>单线程、顺序处理</strong>的服务器，当你正在处理一个连接时，新的连接会先排队等待（队列满了才会失败），所以你只能一个一个处理（进入了一个循环）。</p>
+<p><code>listen</code> 成功返回 <code>0</code>，失败返回 <code>-1</code>。</p>
+<ol start="4">
+<li><strong><code>accept()</code> 等待客户端连接</strong></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">client_sock = accept(sock, (struct sockaddr *) &amp;cli_addr, &amp;cli_size);</span><br></pre></td></tr></table></figure>
+
+<p>会在这里<strong>阻塞等待</strong>，直到有客户端连上来才继续向下执行；它返回的是一个<strong>新的文件描述符</strong>，专门代表这一次建立好的连接（从上文可知：这个连接是一个<strong>文件</strong>，我们操作它的<strong>文件描述符</strong>就可实现读写了）。从函数的参数可以明确：它从 <code>sock</code> 文件描述符在上文中建立的队列中取一个连接，然后按照 <code>cli_addr</code> 的格式接收（它是 <code>sockaddr_in</code> 类型的，你可以完全参考上文 <code>bind</code> 中对 <code>addr</code> 的定义理解对它的定义，只不过这里是 <code>accept</code> 函数返回一个结构体供我们接收）。<strong>注意：<code>sock</code> 只是监听用的入口，真正读写数据用的是 <code>client_sock</code></strong>。（前一个可以理解为我们自己的端口（收到连接后它会存到一个队列里，由内核维护），后面的才是真正的<strong>连接</strong>（也就是从 <code>echo_client</code> 来的请求连接），它们现在都是<strong>文件</strong>）</p>
+<ol start="5">
+<li><strong><code>recv()</code> 读取客户端数据</strong></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">readret = recv(client_sock, buf, BUF_SIZE, 0);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>client_sock</code>：<strong>要读的连接</strong>，也就是 <code>accept()</code> 返回的文件描述符。</li>
+<li><code>buf</code>：<strong>接收缓冲区的起始地址</strong>，数据会写到这里。</li>
+<li><code>BUF_SIZE</code>：<strong>最多读多少字节</strong>（缓冲区大小），防止写越界。</li>
+<li><code>0</code>：<strong>标志位</strong>，用默认行为即可（这里没有特殊需求）。</li>
+</ul>
+<ol start="6">
+<li><strong><code>send()</code> 把数据回发</strong></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">send(client_sock, buf, readret, 0);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>client_sock</code>：<strong>要写的连接</strong></li>
+<li><code>buf</code>：<strong>发送缓冲区的起始地址</strong>（要发的数据）</li>
+<li><code>readret</code>：<strong>要发送的字节数</strong>，通常就是刚刚 <code>recv</code> 到的长度</li>
+<li><code>0</code>：<strong>标志位</strong>，默认发送</li>
+</ul>
+<p><strong>二、客户端 <code>echo_client.c</code> 在做什么？</strong></p>
+<p>客户端逻辑非常短，只做三件事：</p>
+<ol>
+<li><strong>连接服务器</strong>：<code>connect()</code></li>
+</ol>
+<p>也就是我们 <code>accept()</code> 接收的东西，如果你能理解上述的内容一定可以理解这一点的，我们就不多做介绍了。</p>
+<ol>
+<li><strong>发送数据</strong>：<code>send()</code></li>
+<li><strong>接收回显</strong>：<code>recv()</code></li>
+</ol>
+<p>所以它只是一个“把输入发出去”的 TCP 客户端，它并不理解 HTTP。</p>
+<p>也就是说：**通信已经完成了，但业务逻辑还没有开始。**它现在只是一个回声服务器。</p>
+<h2 id="3-代码拓展"><a href="#3-代码拓展" class="headerlink" title="3. 代码拓展"></a>3. 代码拓展</h2><p>那么接下来的任务就十分明确了：如何拓展 <code>echo_server.c</code> 的功能，将 <code>parser()</code> 方法添加到合适的位置，将通过 <code>TCP</code> 连接传入 server 中的 <code>HTTP 报文</code> 进行处理。如果我们确实读懂了代码的话就清楚，我们添加的思路大概是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">while((readret = recv(client_sock, buf, BUF_SIZE, 0)) &gt;= 1)&#123;</span><br><span class="line">    // 在这里调用 parse ，得到一个 *Request </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是在这里存在几个关键问题：</p>
+<ol>
+<li>recv() 读到的是<strong>字节流</strong>，不保证一次就是一个完整 HTTP 请求。</li>
+<li>一次 recv() 可能读到<strong>多个请求</strong>（粘包，如果连续发送了两个连接，读到的东西可能是上一个请求的尾巴和下一个请求开始的一部分），不能只解析一次就结束。</li>
+<li>如果请求不完整，应该继续读取；如果格式错误，应该立即返回 400。</li>
+<li>parse() 成功后，还要根据方法决定是回 200 还是 501。</li>
+<li>处理完一个请求后，缓冲区里可能还有后续请求，必须“消费已处理字节”再继续解析。</li>
+<li>send() 可能短写，响应发送需要完整写出。</li>
+<li>HEAD 方法只返回响应头，不返回 body。</li>
+<li>缓冲区被占满却仍无法形成合法请求时，应返回 400 并关闭连接。</li>
+</ol>
+<p>实际上处理这些问题的办法有很多，下面是我的实现思路仅供参考：</p>
+<h4 id="3-1-解析接口改造"><a href="#3-1-解析接口改造" class="headerlink" title="3.1. 解析接口改造"></a>3.1. 解析接口改造</h4><p>最初版本里，parse 的签名是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Request * parse(char *buffer, int size, int socketFd); </span><br></pre></td></tr></table></figure>
+
+<p>这个设计有一个核心问题：它只有“返回 Request* 或 NULL”两种结果。<br> 但在 TCP 字节流场景里，NULL 其实可能代表三种完全不同的情况：</p>
+<ol>
+<li>当前数据只是<strong>不完整</strong>（应该继续 recv）</li>
+<li>报文<strong>格式错误</strong>（应该返回 400 Bad request）</li>
+<li><strong>内存分配失败</strong>等系统错误（不应按业务错误处理）</li>
+</ol>
+<p>如果这三种都混在一个 NULL 里，echo_server 就无法写出正确分支。</p>
+<p>因此我们把接口改成了<strong>结果状态 + 输出参数</strong>模式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ParseResult parse(char *buffer, int size, Request **out_request, size_t *out_consumed)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>我删除了 <code>socketFd</code> 参数，因为我认为这不是一个好的处理方式：真正利用 socketFd，让 parse 在 PARSE_INCOMPLETE 时内部继续 recv 会使 <code>main</code> 函数会更短，但 <code>parse</code> 和网络 I&#x2F;O <strong>强耦合</strong>，后面 <code>week4</code> 做 select 的重构会更痛苦。</p>
+</blockquote>
+<p>并新增枚举：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	PARSE_OK = <span class="number">0</span>,</span><br><span class="line">	PARSE_INCOMPLETE,</span><br><span class="line">	PARSE_BAD_REQUEST,</span><br><span class="line">	PARSE_OOM</span><br><span class="line">&#125; ParseResult;</span><br><span class="line"></span><br><span class="line">ParseResult <span class="title function_">parse</span><span class="params">(<span class="type">char</span> *buffer, <span class="type">int</span> size, Request **out_request, <span class="type">size_t</span> *out_consumed)</span>;</span><br><span class="line"><span class="comment">// 记得在这里修改 `parse` 函数的定义</span></span><br></pre></td></tr></table></figure>
+
+<p>这样 parse() 的语义就清晰了：</p>
+<ul>
+<li>PARSE_INCOMPLETE：数据未收全，server 继续读；</li>
+<li>PARSE_BAD_REQUEST：报文错误，server 回 400；</li>
+<li>PARSE_OK：成功解析，out_request 拿到结构体；</li>
+<li>out_consumed：告诉 server 这次消费了多少字节（用于处理粘包&#x2F;多请求）。</li>
+</ul>
+<p>这一步是后续改造 echo_server 的前提：**先把解析器的“状态表达能力”补齐，再把它接入网络收包主循环。**后续如果需要拓展，只需要在拓展 <code>enum</code> 后在 <code>parse()</code> 中添加分支，然后在主函数中进行处理。</p>
+<h4 id="3-2-body-完整性判断"><a href="#3-2-body-完整性判断" class="headerlink" title="3.2. body 完整性判断"></a>3.2. body 完整性判断</h4><p>再观察现在的代码结构：到这里有一个非常容易误解的点：yyparse() 返回 SUCCESS，<strong>只代表请求行 + 首部字段的语法匹配成功，并不代表整个 HTTP 请求已经完整到达</strong>。</p>
+<p>也就是说，语法层只告诉我们“头部文本长得对”；但对于带请求体的报文（例如 POST），我们还必须回答另一个问题：**body 收全了吗？**接下来完整的代码修改是这样的：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Valid End State</span></span><br><span class="line"><span class="keyword">if</span> (state == STATE_CRLFCRLF) &#123;</span><br><span class="line">    <span class="type">size_t</span> header_len = (<span class="type">size_t</span>)i; <span class="comment">//前文说过，这里就是 header 部分的长度呢</span></span><br><span class="line">    Request *request = (Request *) <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(Request));</span><br><span class="line">    <span class="keyword">if</span> (!request) &#123;</span><br><span class="line">        <span class="keyword">return</span> PARSE_OOM;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    request-&gt;header_count = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//TODO You will need to handle resizing this in parser.y</span></span><br><span class="line">    request-&gt;header_capacity = <span class="number">8</span>;</span><br><span class="line">    request-&gt;headers = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(Request_header) * request-&gt;header_capacity);</span><br><span class="line">    <span class="keyword">if</span> (!request-&gt;headers) &#123;</span><br><span class="line">        <span class="built_in">free</span>(request);</span><br><span class="line">        <span class="keyword">return</span> PARSE_OOM;</span><br><span class="line">    &#125;</span><br><span class="line">    set_parsing_options(buf, i, request);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (yyparse() == SUCCESS) &#123;</span><br><span class="line">        <span class="type">size_t</span> content_len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> (get_content_length(request, &amp;content_len) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">free</span>(request-&gt;headers);</span><br><span class="line">            <span class="built_in">free</span>(request);</span><br><span class="line">            <span class="keyword">return</span> PARSE_BAD_REQUEST;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> ((<span class="type">size_t</span>)size &lt; header_len + content_len) &#123;</span><br><span class="line">            <span class="built_in">free</span>(request-&gt;headers);</span><br><span class="line">            <span class="built_in">free</span>(request);</span><br><span class="line">            <span class="keyword">return</span> PARSE_INCOMPLETE;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (out_request)</span><br><span class="line">            *out_request = request;</span><br><span class="line">        <span class="keyword">if</span> (out_consumed)</span><br><span class="line">            *out_consumed = header_len + content_len;</span><br><span class="line">        <span class="keyword">return</span> PARSE_OK;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">free</span>(request-&gt;headers);</span><br><span class="line">    <span class="built_in">free</span>(request);</span><br><span class="line">    <span class="keyword">return</span> PARSE_BAD_REQUEST;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//TODO Handle Malformed Requests</span></span><br><span class="line"><span class="keyword">return</span> PARSE_INCOMPLETE;</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>get_content_length</code> 方法的定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">get_content_length</span><span class="params">(<span class="type">const</span> Request *req, <span class="type">size_t</span> *out_len)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">int</span> i;</span><br><span class="line">	*out_len = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; req-&gt;header_count; i++)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (strcasecmp(req-&gt;headers[i].header_name, <span class="string">&quot;Content-Length&quot;</span>) == <span class="number">0</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="type">char</span> *end = <span class="literal">NULL</span>;</span><br><span class="line">			<span class="type">long</span> val = strtol(req-&gt;headers[i].header_value, &amp;end, <span class="number">10</span>);</span><br><span class="line">			<span class="keyword">if</span> (end == req-&gt;headers[i].header_value || val &lt; <span class="number">0</span>)</span><br><span class="line">				<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">			<span class="keyword">while</span> (*end == <span class="string">&#x27; &#x27;</span> || *end == <span class="string">&#x27;\t&#x27;</span>)</span><br><span class="line">				end++;</span><br><span class="line">			<span class="keyword">if</span> (*end != <span class="string">&#x27;\0&#x27;</span>)</span><br><span class="line">				<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">			*out_len = (<span class="type">size_t</span>)val;</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以按 4 步理解：</p>
+<ol>
+<li><strong>解析并校验 Content-Length</strong><br> <code>get_content_length()</code> 会在 headers 中查找并解析 Content-Length。如果字段值不是合法非负整数（例如有脏字符、负数），直接判定为 <code>PARSE_BAD_REQUEST</code> 。</li>
+<li><strong>计算“完整请求”应有的总长度</strong><br> <code>完整长度 = header_len + content_len</code><br> 其中 header_len 是 \r\n\r\n 结束位置，content_len 是请求体长度。</li>
+<li><strong>判断当前缓冲区是否收全</strong><br> 如果 <code>size &lt; header_len + content_len</code> ，说明这次 recv 只拿到了部分 body，这时不能报 400，而应返回 <code>PARSE_INCOMPLETE</code> ，让上层继续读。</li>
+<li><strong>仅在语法正确 + 数据完整时返回成功</strong><br> 设置 out_request 和 out_consumed，再返回 <code>PARSE_OK</code> 。这样 server 才能安全地处理本次请求，并知道应当从缓冲区消费多少字节。(不知道我们处理了多少字节的话，粘包一旦发生就不知道哪里是上一个包的末尾，哪里是下一个包的开始了)</li>
+</ol>
+<h4 id="3-3-主循环与粘包处理"><a href="#3-3-主循环与粘包处理" class="headerlink" title="3.3. 主循环与粘包处理"></a>3.3. 主循环与粘包处理</h4><p>接下来我们就可以编写 <code>echo_server.c</code> 的主循环了，接下来我先给出完整的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (!close_conn &amp;&amp; (readret = recv(client_sock, buf + used, <span class="keyword">sizeof</span>(buf) - used, <span class="number">0</span>)) &gt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            used += (<span class="type">size_t</span>)readret;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (;;)</span><br><span class="line">            &#123;</span><br><span class="line">                Request *request = <span class="literal">NULL</span>;</span><br><span class="line">                <span class="type">size_t</span> consumed = <span class="number">0</span>;</span><br><span class="line">                ParseResult pres = parse(buf, (<span class="type">int</span>)used, client_sock, &amp;request, &amp;consumed);</span><br><span class="line">                <span class="keyword">if</span> (pres == PARSE_INCOMPLETE)</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                <span class="keyword">if</span> (pres != PARSE_OK)</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="type">const</span> <span class="type">char</span> *bad = <span class="string">&quot;HTTP/1.1 400 Bad request\r\n\r\n&quot;</span>;</span><br><span class="line">                    send_all(client_sock, bad, <span class="built_in">strlen</span>(bad));</span><br><span class="line">                    close_conn = <span class="number">1</span>;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (!is_supported_method(request-&gt;http_method))</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="type">const</span> <span class="type">char</span> *not_impl = <span class="string">&quot;HTTP/1.1 501 Not Implemented\r\n\r\n&quot;</span>;</span><br><span class="line">                    send_all(client_sock, not_impl, <span class="built_in">strlen</span>(not_impl));</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="type">char</span> resp_hdr[<span class="number">256</span>];</span><br><span class="line">                    <span class="type">int</span> hdr_len = <span class="built_in">snprintf</span>(resp_hdr, <span class="keyword">sizeof</span>(resp_hdr),</span><br><span class="line">                                           <span class="string">&quot;HTTP/1.1 200 OK\r\nContent-Length: %zu\r\n\r\n&quot;</span>,</span><br><span class="line">                                           consumed);</span><br><span class="line">                    send_all(client_sock, resp_hdr, (<span class="type">size_t</span>)hdr_len);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">strcmp</span>(request-&gt;http_method, <span class="string">&quot;HEAD&quot;</span>) != <span class="number">0</span>)</span><br><span class="line">                        send_all(client_sock, buf, consumed);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="built_in">free</span>(request-&gt;headers);</span><br><span class="line">                <span class="built_in">free</span>(request);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (consumed &gt; used)</span><br><span class="line">                &#123;</span><br><span class="line">                    used = <span class="number">0</span>;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                memmove(buf, buf + consumed, used - consumed);</span><br><span class="line">                used -= consumed;</span><br><span class="line">                <span class="keyword">if</span> (used == <span class="number">0</span>)</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (used == <span class="keyword">sizeof</span>(buf))</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="type">const</span> <span class="type">char</span> *bad = <span class="string">&quot;HTTP/1.1 400 Bad request\r\n\r\n&quot;</span>;</span><br><span class="line">                send_all(client_sock, bad, <span class="built_in">strlen</span>(bad));</span><br><span class="line">                close_conn = <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        close_socket(client_sock);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>close_socket</code> 和 <code>send_all</code> 的定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">close_socket</span><span class="params">(<span class="type">int</span> sock)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (close(sock))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Failed closing socket.\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">send_all</span><span class="params">(<span class="type">int</span> sock, <span class="type">const</span> <span class="type">char</span> *buf, <span class="type">size_t</span> len)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">size_t</span> sent = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (sent &lt; len)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">ssize_t</span> n = send(sock, buf + sent, len - sent, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (n &lt;= <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        sent += (<span class="type">size_t</span>)n;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li>close_socket：统一关闭 socket 的行为和错误处理。<br> 如果每个分支都手写 close()，很容易漏掉错误检查，或者在多处逻辑里写出不一致的收尾代码。封装后可读性和一致性都更好。</li>
+<li>send_all：保证“把该发的数据完整发出去”。<br> send() 在 TCP 下并不保证一次就把 len 字节全部发送完成，可能出现<strong>短写</strong>。如果我们只调用一次 send()，就可能只发出半个响应头，客户端看到的就是残缺报文。send_all 用循环把剩余字节继续发送，直到全部发完或明确失败。</li>
+</ul>
+<p>所以这两个函数本质上是：<strong>把重复且容易出错的系统调用细节收敛起来，让主循环只关注协议流程。</strong></p>
+</blockquote>
+<h4 id="3-4-主循环条件与控制流"><a href="#3-4-主循环条件与控制流" class="headerlink" title="3.4. 主循环条件与控制流"></a>3.4. 主循环条件与控制流</h4><p>主循环条件是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (!close_conn &amp;&amp; (readret = recv(client_sock, buf + used, <span class="keyword">sizeof</span>(buf) - used, <span class="number">0</span>)) &gt; <span class="number">0</span>)&#123;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个条件本身就编码了三层语义：</p>
+<ol>
+<li><code>!close_conn</code>：业务上还允许继续处理这个连接。<br> 一旦我们已经判定要关闭（比如发送了 400），就不应继续读。</li>
+<li><code>buf + used</code>：新数据追加到“未处理残留”后面。<br> 这是为了解决半包：上次可能只收到一半请求，不能覆盖旧数据。</li>
+<li><code>sizeof(buf) - used</code>：只使用缓冲区剩余空间。<br> 防止写越界，同时把“空间是否耗尽”纳入控制流（后面有 used &#x3D;&#x3D; sizeof(buf) 的保护分支）。</li>
+</ol>
+<p>然后每轮 recv 之后，内层 <code>for (;;)</code> 做的是<strong>尽可能多地从当前缓存里拆请求</strong>（每层 while 的开始都会读一些内容到 buf 中，在 for 中 break 就意味着继续读）：</p>
+<ul>
+<li><code>parse == PARSE_INCOMPLETE</code>：当前数据还不够，跳出内层，回外层继续 recv。</li>
+<li><code>parse != PARSE_OK</code>：格式错误，发 400，标记关闭连接。</li>
+<li><code>parse == PARSE_OK</code>：根据方法返回 200 或 501，释放请求对象，然后按 consumed 前移缓冲区继续解析下一个请求。</li>
+</ul>
+<p>这就是<strong>一次收包，可能解析多个请求</strong>的核心能力，也是处理粘包。后续就是处理解析后的请求：按照要求向客户端回消息就可以了。</p>
+<h2 id="4-编译运行与实验结果"><a href="#4-编译运行与实验结果" class="headerlink" title="4. 编译运行与实验结果"></a>4. 编译运行与实验结果</h2><h3 id="4-1-基础设施3：Makefile"><a href="#4-1-基础设施3：Makefile" class="headerlink" title="4.1. 基础设施3：Makefile"></a>4.1. 基础设施3：Makefile</h3><p>如果这时候运行 <code>make</code>，很可能会出现“代码明明没语法问题，但还是编不过”的情况。这类错误通常不是 <code>echo_server.c</code> 本身写错，而是 <strong>Makefile 的链接规则不完整</strong>。</p>
+<h4 id="4-1-1-问题在哪里：只链接了-echo-server-o"><a href="#4-1-1-问题在哪里：只链接了-echo-server-o" class="headerlink" title="4.1.1. 问题在哪里：只链接了 echo_server.o"></a>4.1.1. 问题在哪里：只链接了 <code>echo_server.o</code></h4><p>先看原本的写法（注意：<strong>命令必须换行并用 Tab 缩进</strong>，不能写在同一行）：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">echo_server: <span class="variable">$(OBJ_DIR)</span>/echo_server.o</span></span><br><span class="line">	<span class="variable">$(CC)</span> -Werror <span class="variable">$^</span> -o <span class="variable">$@</span></span><br></pre></td></tr></table></figure>
+
+<p>这条规则只把 <code>echo_server.o</code> 链接成可执行文件，但现在我们在 <code>echo_server.c</code> 实际调用了 <code>parse()</code>，因此需要修改，那么原本使用了 <code>parse()</code> 方法的 <code>example.c</code> 如何在 <code>Makefile</code> 中写的就很有参考意义。</p>
+<p> <code>parse()</code> 的实现并不在 <code>echo_server.o</code>，而在：</p>
+<ul>
+<li><code>parse.o</code>（<code>parse.c</code> 编译出来的）</li>
+<li>以及解析器依赖的 <code>y.tab.o</code>、<code>lex.yy.o</code>（由 <code>yacc/flex</code> 生成的 <code>.c</code> 再编译出来的）</li>
+</ul>
+<p>因此只链接一个 <code>echo_server.o</code>，就会出现 <code>undefined reference</code> 这种典型链接错误。</p>
+<hr>
+<h4 id="4-1-2-编译-vs-链接"><a href="#4-1-2-编译-vs-链接" class="headerlink" title="4.1.2. 编译 vs 链接"></a>4.1.2. 编译 vs 链接</h4><p>这里先复习一下两个概念：</p>
+<ol>
+<li><strong>编译（compile）</strong>：<code>*.c -&gt; *.o</code>，每个源文件独立生成目标文件。</li>
+<li><strong>链接（link）</strong>：把多个 <code>.o</code> 合并成最终可执行文件。</li>
+</ol>
+<p><code>#include &quot;parse.h&quot;</code> 只提供函数声明，并不会把函数实现自动带进来；实现是否存在，取决于链接阶段有没有把对应 <code>.o</code> 放进去。因此我们的任务就是把函数实现放进去！</p>
+<hr>
+<h4 id="4-1-3-正确做法"><a href="#4-1-3-正确做法" class="headerlink" title="4.1.3. 正确做法"></a>4.1.3. 正确做法</h4><p>参考 <code>example</code> 的实现形式，对于 <code>echo_server</code> ，我们把解析器相关的 <code>.o</code> 抽成一组公共对象：</p>
+<blockquote>
+<p>参考语法：</p>
+<ul>
+<li><code>$@</code>：当前目标名（例如 <code>echo_server</code>）</li>
+<li><code>$^</code>：当前规则的全部依赖（展开后是一串 <code>.o</code>）</li>
+<li><code>$&lt;</code>：第一个依赖（通常用在“一对一编译规则”里）</li>
+</ul>
+</blockquote>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># parser-related objects shared by example and echo_server</span></span><br><span class="line">PARSER_OBJ := <span class="variable">$(OBJ_DIR)</span>/y.tab.o <span class="variable">$(OBJ_DIR)</span>/lex.yy.o <span class="variable">$(OBJ_DIR)</span>/parse.o</span><br><span class="line"></span><br><span class="line"><span class="comment"># per-binary objects</span></span><br><span class="line">EXAMPLE_OBJ := <span class="variable">$(OBJ_DIR)</span>/example.o <span class="variable">$(PARSER_OBJ)</span></span><br><span class="line">SERVER_OBJ  := <span class="variable">$(OBJ_DIR)</span>/echo_server.o <span class="variable">$(PARSER_OBJ)</span></span><br><span class="line">CLIENT_OBJ  := <span class="variable">$(OBJ_DIR)</span>/echo_client.o</span><br></pre></td></tr></table></figure>
+
+<p>然后分别写三个可执行文件的链接规则：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">example: <span class="variable">$(EXAMPLE_OBJ)</span></span></span><br><span class="line">	<span class="variable">$(CC)</span> <span class="variable">$^</span> -o <span class="variable">$@</span></span><br><span class="line"></span><br><span class="line"><span class="section">echo_server: <span class="variable">$(SERVER_OBJ)</span></span></span><br><span class="line">	<span class="variable">$(CC)</span> -Werror <span class="variable">$^</span> -o <span class="variable">$@</span></span><br><span class="line"></span><br><span class="line"><span class="section">echo_client: <span class="variable">$(CLIENT_OBJ)</span></span></span><br><span class="line">	<span class="variable">$(CC)</span> -Werror <span class="variable">$^</span> -o <span class="variable">$@</span></span><br></pre></td></tr></table></figure>
+
+<p>这样一来：</p>
+<ul>
+<li><code>echo_server</code> 需要什么就链接什么：<code>echo_server.o + parse.o + y.tab.o + lex.yy.o</code></li>
+<li><code>example</code> 同样依赖同一套解析器对象文件</li>
+<li>后续你继续改 <code>parse.c / parser.y / lexer.l</code>，不会再出现“example 能编，server 不能编”的分裂状态</li>
+</ul>
+<p>当你执行 <code>make echo_server</code>，最终等价于组织出类似这样的链接命令（顺序由依赖决定，但核心是<strong>链接阶段把需要的 <code>.o</code> 全放进去</strong>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -Werror obj/echo_server.o obj/y.tab.o obj/lex.yy.o obj/parse.o -o echo_server</span><br></pre></td></tr></table></figure>
+
+<p>到这里 Makefile 的问题就解决了：编译阶段各编各的，链接阶段把该拼的拼齐。</p>
+<h3 id="4-2-展示结果"><a href="#4-2-展示结果" class="headerlink" title="4.2. 展示结果"></a>4.2. 展示结果</h3><p>首先<code>make clean</code>，  <code>make</code>，然后 <code>./echo_server</code> 运行我们的服务端，随后在本机浏览器（我这里是 Chrome ）中输入 <code>http://127.0.0.1:8888/</code> （避免走 <code>HTTPS</code> 方法，需要完整输入）</p>
+<p><img src="/blog/assets/posts/liso-socket-programming/image-20260208182831933.png" alt="image-20260208182831933"></p>
+<p>浏览器中得到：</p>
+<p><img src="/blog/assets/posts/liso-socket-programming/image-20260208182843542.png" alt="image-20260208182843542"></p>
+<p>到此，我们第一周的任务就完成了。</p>
+<h3 id="4-3-协议设计（目前阶段）"><a href="#4-3-协议设计（目前阶段）" class="headerlink" title="4.3. 协议设计（目前阶段）"></a>4.3. 协议设计（目前阶段）</h3><ol>
+<li><strong>请求消息解析方法</strong><br><code>parse()</code>  实现分帧 + 语法 + 完整性校验。先用状态机扫描 <code>\r\n\r\n</code> 找到头部结束位置（<code>header_len</code>），再把头部交给 <code>yyparse()</code> 做语法归约（方法&#x2F;URI&#x2F;版本&#x2F;headers 落入 Request 结构体），最后读取并校验 Content-Length。若 <code>size &lt; header_len + content_len</code> 返回 <code>PARSE_INCOMPLETE</code> ；语法或长度非法返回 <code>PARSE_BAD_REQUEST</code> ；只有<strong>语法正确且数据完整</strong>才返回 PARSE_OK，并通过 <code>out_consumed</code> 告知本次消费字节数。</li>
+<li><strong>接收缓冲区设计</strong><br>服务端使用固定接收缓冲区（<code>BUF_SIZE = MAX_HEADER_SIZE</code>），<code>used</code> 记录已占用字节。每次 <code>recv</code> 追加到 <code>buf + used</code>，随后循环调用 parse() 尽可能多地解析请求。成功后通过 <code>memmove(buf, buf + consumed, used - consumed)</code> 前移剩余数据，实现半包保留与粘包拆分；PARSE_INCOMPLETE 则继续收包；缓冲区打满仍无法推进时返回 400 并关闭连接。（你也可以在第一周去掉有关粘包的处理）</li>
+<li><strong>日志记录模块设计</strong><br>当前版本没有独立日志模块，采用最简的方法：启动信息走 <code>stdout</code>，错误走 <code>stderr</code>（如 <code>socket/bind/listen/accept/close</code> 失败）。<code>close_socket()</code> 统一了关闭错误输出。该设计符合第一周先跑通协议流程的目标，不包含任何复杂功能（这在第二周实现）。</li>
+<li><strong>其它设计细节</strong><br>方法白名单为 GET&#x2F;HEAD&#x2F;POST，其余方法返回 501；格式错误返回 400。HEAD 仅返回响应头不返回 body。发送端使用 <code>send_all()</code> 处理短写，保证响应完整写出。每次解析完成后释放 <code>request</code> 与 <code>request-&gt;headers</code>，避免内存泄漏。整体为单进程单线程阻塞模型，重点验证 HTTP 解析与响应语义，尚未引入多路复用（第四周的任务）。</li>
+</ol>
+</article>
+<div class="article-footer">
+    <section id="license">
+      <div class="header"><span>许可协议</span></div>
+      <div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div>
+    </section>
+    
+
+</div>
+
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"></div><div class="item" id="next"><div class="note">较早文章</div><a href="/blog/2026/02/04/%E2%80%9C%E4%B8%80%E5%8A%B3%E6%B0%B8%E9%80%B8%E2%80%9D%20%E7%9A%84%E5%BC%80%E5%8F%91%E5%AE%B9%E5%99%A8%E5%85%A5%E9%97%A8%20%EF%BC%9ADocker%20%E5%AE%B9%E5%99%A8%20+%20VS%20Code%20%E5%85%A8%E6%B5%81%E7%A8%8B/">“一劳永逸” 的开发容器入门 ：Docker 容器 + VS Code 全流程</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="sitemap" style="column-count:3;"><div class="sitemap-group"><span class="fs15">博客</span><a href="https://kamill7779.github.io/blog/">最新</a><a href="https://kamill7779.github.io/blog/tags/">标签</a><a href="https://kamill7779.github.io/blog/archives/">归档</a></div><div class="sitemap-group"><span class="fs15">社交</span><a target="_blank" rel="noopener" href="https://github.com/kamill7779">GitHub</a><a href="mailto:kamill7779@outlook.com">Email</a></div><div class="sitemap-group"><span class="fs15">关于</span><a href="https://kamill7779.github.io/blog/about/">关于我</a><a href="https://kamill7779.github.io/blog/friends/">友情链接</a></div></div><div class="text"><p>你好，我是 Kamil Liu，这里记录算法、工程实践与日常笔记。<br>本站使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.33.1">Stellar 1.33.1</a> 主题构建。<br>本站文章默认采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right">
+<div class="widgets">
+
+
+
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0-%E5%89%8D%E8%A8%80"><span class="toc-text">0. 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%A1%B9%E7%9B%AE%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="toc-text">1. 项目启动流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD1%EF%BC%9ADocker"><span class="toc-text">1.1. 基础设施1：Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%841%EF%BC%9A%E6%9C%8D%E5%8A%A1%E7%AB%AF%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-text">1.2. 项目架构1：服务端与客户端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%842%EF%BC%9A%E6%A0%B8%E5%BF%83%E6%96%B9%E6%B3%95-parse"><span class="toc-text">1.3. 项目架构2：核心方法 parse()</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-text">2. 代码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD2%EF%BC%9A%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86%E4%B8%8E-parse"><span class="toc-text">2.1. 基础设施2：编译原理与 parse()</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-1-%E7%8A%B6%E6%80%81%E6%9C%BA%E4%B8%8E%E5%88%86%E5%B8%A7"><span class="toc-text">2.1.1. 状态机与分帧</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-2-TODO-%E4%B8%8E-parser-y"><span class="toc-text">2.1.2. TODO 与 parser.y</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-3-%E6%96%87%E6%B3%95%E8%A7%84%E5%88%99%E4%B8%8E%E6%8E%A8%E5%AF%BC"><span class="toc-text">2.1.3. 文法规则与推导</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-4-%E5%A4%9A%E8%A1%8C-Header"><span class="toc-text">2.1.4. 多行 Header</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-5-headers-%E6%89%A9%E5%AE%B9"><span class="toc-text">2.1.5. headers 扩容</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1"><span class="toc-text">2.2. 进程间通信</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="toc-text">2.2.1. 文件系统与文件描述符</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-%E9%80%9A%E4%BF%A1%E7%AE%80%E5%8E%86%E6%B5%81%E7%A8%8B"><span class="toc-text">2.2.2. 通信简历流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E4%BB%A3%E7%A0%81%E6%8B%93%E5%B1%95"><span class="toc-text">3. 代码拓展</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-%E8%A7%A3%E6%9E%90%E6%8E%A5%E5%8F%A3%E6%94%B9%E9%80%A0"><span class="toc-text">3.1. 解析接口改造</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-body-%E5%AE%8C%E6%95%B4%E6%80%A7%E5%88%A4%E6%96%AD"><span class="toc-text">3.2. body 完整性判断</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-%E4%B8%BB%E5%BE%AA%E7%8E%AF%E4%B8%8E%E7%B2%98%E5%8C%85%E5%A4%84%E7%90%86"><span class="toc-text">3.3. 主循环与粘包处理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-4-%E4%B8%BB%E5%BE%AA%E7%8E%AF%E6%9D%A1%E4%BB%B6%E4%B8%8E%E6%8E%A7%E5%88%B6%E6%B5%81"><span class="toc-text">3.4. 主循环条件与控制流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%BC%96%E8%AF%91%E8%BF%90%E8%A1%8C%E4%B8%8E%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="toc-text">4. 编译运行与实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD3%EF%BC%9AMakefile"><span class="toc-text">4.1. 基础设施3：Makefile</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-%E9%97%AE%E9%A2%98%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9A%E5%8F%AA%E9%93%BE%E6%8E%A5%E4%BA%86-echo-server-o"><span class="toc-text">4.1.1. 问题在哪里：只链接了 echo_server.o</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-%E7%BC%96%E8%AF%91-vs-%E9%93%BE%E6%8E%A5"><span class="toc-text">4.1.2. 编译 vs 链接</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-3-%E6%AD%A3%E7%A1%AE%E5%81%9A%E6%B3%95"><span class="toc-text">4.1.3. 正确做法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%B1%95%E7%A4%BA%E7%BB%93%E6%9E%9C"><span class="toc-text">4.2. 展示结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%8D%8F%E8%AE%AE%E8%AE%BE%E8%AE%A1%EF%BC%88%E7%9B%AE%E5%89%8D%E9%98%B6%E6%AE%B5%EF%BC%89"><span class="toc-text">4.3. 协议设计（目前阶段）</span></a></li></ol></li></ol></div><div class="widget-footer"><a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Solar by 480 Design - https://creativecommons.org/licenses/by/4.0/ --><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><path stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/><path d="M7 3.338A9.95 9.95 0 0 1 12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12c0-1.821.487-3.53 1.338-5"/></g></svg><span>回到顶部</span></a></div></widget>
+</div></aside><div class='float-panel'>
+  <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type='button' style='display:none' class='mobile-only leftbar-toggle mobile' onclick='sidebar.leftbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+</div><div class="scripts">
+
+
+<script type="text/javascript">
+  window.canonical = {"originalHost":null,"officialHosts":["localhost"],"encoded":""};
+  const ctx = {
+    date_suffix: {
+      just: `刚刚`,
+      min: `分钟前`,
+      hour: `小时前`,
+      day: `天前`,
+    },
+    root : `/blog/`,
+    tag_plugins: {
+      chat: Object.assign({"api":"https://siteinfo.listentothewind.cn/api/v1"}),
+    }
+  };
+
+  // required plugins (only load if needs)
+  if (`local_search`) {
+    ctx.search = {};
+    ctx.search.service = `local_search`;
+    if (ctx.search.service == 'local_search') {
+      let service_obj = Object.assign({}, `{"field":"all","path":"/search.json","content":true,"skip_search":null,"sort":"-date"}`);
+      ctx.search[ctx.search.service] = service_obj;
+    }
+  }
+  const def = {
+    avatar: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/3442075.svg`,
+    cover: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg`,
+    loading: `https://api.iconify.design/eos-icons:three-dots-loading.svg?color=%231cd0fd`,
+  };
+  const deps = {
+    jquery: `https://gcore.jsdelivr.net/npm/jquery@3.7/dist/jquery.min.js`,
+    marked: `https://gcore.jsdelivr.net/npm/marked@13.0/lib/marked.umd.min.js`,
+    lazyload: `/blog/%5Bobject%20Object%5D`
+  }
+  
+
+</script>
+
+<script type="text/javascript">
+  
+  function RunItem() {
+    this.list = []; // 存放回调函数
+    this.start = () => {
+      for (var i = 0; i < this.list.length; i++) {
+        this.list[i].run();
+      }
+    };
+    this.push = (fn, name, setRequestAnimationFrame = true) => {
+      let myfn = fn
+      if (setRequestAnimationFrame) {
+        myfn = () => {
+          utils.requestAnimationFrame(fn)
+        }
+      }
+      var f = new Item(myfn, name);
+      this.list.push(f);
+    };
+    this.remove = (name) => {
+      for (let index = 0; index < this.list.length; index++) {
+        const e = this.list[index];
+        if (e.name == name) {
+          this.list.splice(index, 1);
+        }
+      }
+    }
+    // 构造一个可以run的对象
+    function Item(fn, name) {
+      // 函数名称
+      this.name = name || fn.name;
+      // run方法
+      this.run = () => {
+        try {
+          fn()
+        } catch (error) {
+          console.log(error);
+        }
+      };
+    }
+  }
+
+  const utils = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    css: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    js: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')) {
+        src = ctx.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function () {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    jq: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        utils.js(deps.jquery).then(fn)
+      } else {
+        fn()
+      }
+    },
+
+    onLoading: (el) => {
+      if (el) {
+        $(el).append('<div class="loading-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg></div>');
+      }
+    },
+    onLoadSuccess: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap').remove();
+      }
+    },
+    onLoadFailure: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap svg').remove();
+        $(el).find('.loading-wrap').append('<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" d="M12 3L21 20H3L12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="60;0"/></path><path stroke-dasharray="6" stroke-dashoffset="6" d="M12 10V14"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="6;0"/></path></g><circle cx="12" cy="17" r="1" fill="currentColor" fill-opacity="0"><animate fill="freeze" attributeName="fill-opacity" begin="0.8s" dur="0.4s" values="0;1"/></circle></svg>');
+        $(el).find('.loading-wrap').addClass('error');
+      }
+    },
+    request: (el, url, callback, onFailure) => {
+      const maxRetry = 3;
+      let retryCount = 0;
+
+      return new Promise((resolve, reject) => {
+        const load = () => {
+          utils.onLoading?.(el);
+
+          let timedOut = false;
+          const timeout = setTimeout(() => {
+            timedOut = true;
+            console.warn('[request] 超时:', url);
+
+            if (++retryCount >= maxRetry) {
+              utils.onLoadFailure?.(el);
+              onFailure?.();
+              reject('请求超时');
+            } else {
+              setTimeout(load, 1000);
+            }
+          }, 5000);
+
+          fetch(url).then(resp => {
+            if (timedOut) return;
+            clearTimeout(timeout);
+
+            if (!resp.ok) throw new Error('响应失败');
+            return resp;
+          }).then(data => {
+            if (timedOut) return;
+            utils.onLoadSuccess?.(el);
+            callback(data);
+            resolve(data);
+          }).catch(err => {
+            clearTimeout(timeout);
+            console.warn('[request] 错误:', err);
+
+            if (++retryCount >= maxRetry) {
+              utils.onLoadFailure?.(el);
+              onFailure?.();
+              reject(err);
+            } else {
+              setTimeout(load, 1000);
+            }
+          });
+        };
+
+        load();
+      });
+    },
+    requestWithoutLoading: (url, options = {}, maxRetry = 2, timeout = 5000) => {
+      return new Promise((resolve, reject) => {
+        let retryCount = 0;
+
+        const tryRequest = () => {
+          let timedOut = false;
+          const timer = setTimeout(() => {
+            timedOut = true;
+            if (++retryCount > maxRetry) reject('timeout');
+            else tryRequest();
+          }, timeout);
+
+          fetch(url, options)
+            .then(resp => {
+              clearTimeout(timer);
+              if (!resp.ok) throw new Error('bad response');
+              resolve(resp);
+            })
+            .catch(err => {
+              clearTimeout(timer);
+              if (++retryCount > maxRetry) reject(err);
+              else setTimeout(tryRequest, 500);
+            });
+        };
+
+        tryRequest();
+      });
+    },
+    /********************** requestAnimationFrame ********************************/
+    // 1、requestAnimationFrame 会把每一帧中的所有 DOM 操作集中起来，在一次重绘或回流中就完成，并且重绘或回流的时间间隔紧紧跟随浏览器的刷新频率，一般来说，这个频率为每秒60帧。
+    // 2、在隐藏或不可见的元素中，requestAnimationFrame 将不会进行重绘或回流，这当然就意味着更少的的 cpu，gpu 和内存使用量。
+    requestAnimationFrame: (fn) => {
+      if (!window.requestAnimationFrame) {
+        window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame;
+      }
+      window.requestAnimationFrame(fn)
+    },
+    dark: {},
+  };
+
+  // utils.dark.mode 当前模式 dark or light
+  // utils.dark.toggle() 暗黑模式触发器
+  // utils.dark.push(callBack[,"callBackName"]) 传入触发器回调函数
+  utils.dark.method = {
+    toggle: new RunItem(),
+  };
+  utils.dark = Object.assign(utils.dark, {
+    push: utils.dark.method.toggle.push,
+  });
+</script>
+<script>
+  const sidebar = {
+    leftbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    rightbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('rightbar');
+        l_body.removeAttribute('leftbar');
+      }
+    },
+    dismiss: () => {
+      if (l_body) {
+        l_body.removeAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    toggleTOC: () => {
+      document.querySelector('#data-toc').classList.toggle('collapse');
+    }
+  }
+</script>
+<script type="text/javascript">
+  (() => {
+    const tagSwitchers = document.querySelectorAll('.tag-subtree.parent-tag > a > .tag-switcher-wrapper')
+    for (const tagSwitcher of tagSwitchers) {
+      tagSwitcher.addEventListener('click', (e) => {
+        const parent = e.target.closest('.tag-subtree.parent-tag')
+        parent.classList.toggle('expanded')
+        e.preventDefault()
+      })
+    }
+
+    // Get active tag from query string, then activate it.
+    const urlParams = new URLSearchParams(window.location.search)
+    const activeTag = urlParams.get('tag')
+    if (activeTag) {
+      let tag = document.querySelector(`.tag-subtree[data-tag="${activeTag}"]`)
+      if (tag) {
+        tag.querySelector('a').classList.add('active')
+        
+        while (tag) {
+          tag.classList.add('expanded')
+          tag = tag.parentElement.closest('.tag-subtree.parent-tag')
+        }
+      }
+    }
+  })()
+</script>
+
+<script async src="https://gcore.jsdelivr.net/npm/vanilla-lazyload@19.1/dist/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazy",
+    callback_loaded: (el) => {
+      el.classList.add('loaded');
+      const wrapper = el.closest('.lazy-box');
+      const icon = wrapper?.querySelector('.lazy-icon');
+      if (icon) icon.remove();
+    }
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    window.lazyLoadInstance?.update();
+  });
+
+  window.wrapLazyloadImages = (container) => {
+    if (typeof container === 'string') {
+      container = document.querySelector(container);
+    }
+    if (!container) return;
+    
+    const images = container.querySelectorAll('img');
+    images.forEach((img) => {
+      if (img.classList.contains('lazy')) return;
+
+      const src = img.getAttribute('src');
+      if (!src) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'lazy-box';
+
+      const newImg = img.cloneNode();
+      newImg.removeAttribute('src');
+      newImg.setAttribute('data-src', src);
+      newImg.classList.add('lazy');
+
+      const icon = document.createElement('div');
+      icon.className = 'lazy-icon';
+      if (def.loading) {
+        icon.style.backgroundImage = `url("${def.loading}")`;
+      }
+
+      wrapper.appendChild(newImg);
+      wrapper.appendChild(icon);
+
+      img.replaceWith(wrapper);
+    });
+
+    // 通知 LazyLoad 更新
+    if (window.lazyLoadInstance?.update) {
+      window.lazyLoadInstance.update();
+    }
+  }
+  
+</script>
+
+<!-- required -->
+<script src="/blog/js/main.js?v=1.33.1" defer></script>
+
+<script type="text/javascript">
+  const applyTheme = (theme) => {
+    if (theme === 'auto') {
+      document.documentElement.removeAttribute('data-theme')
+    } else {
+      document.documentElement.setAttribute('data-theme', theme)
+    }
+
+    // applyThemeToGiscus(theme)
+  }
+
+  // FIXME: 这会导致无法使用 preferred_color_scheme 以外的主题
+  const applyThemeToGiscus = (theme) => {
+    // theme = theme === 'auto' ? 'preferred_color_scheme' : theme
+    const cmt = document.getElementById('giscus')
+    if (cmt) {
+      // This works before giscus load.
+      cmt.setAttribute('data-theme', theme)
+    }
+
+    const iframe = document.querySelector('#comments > section.giscus > iframe')
+    if (iframe) {
+      // This works after giscus loaded.
+      const src = iframe.src
+      const newSrc = src.replace(/theme=[\w]+/, `theme=${theme}`)
+      iframe.src = newSrc
+    }
+  }
+
+  const switchTheme = () => {
+    // light -> dark -> auto -> light -> ...
+    const currentTheme = document.documentElement.getAttribute('data-theme')
+    let newTheme;
+    switch (currentTheme) {
+      case 'light':
+        newTheme = 'dark'
+        break
+      case 'dark':
+        newTheme = 'auto'
+        break
+      default:
+        newTheme = 'light'
+    }
+    applyTheme(newTheme)
+    window.localStorage.setItem('Stellar.theme', newTheme)
+    utils.dark.mode = newTheme === 'auto' ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : newTheme;
+    utils.dark.method.toggle.start();
+
+    const messages = {
+      light: `切换到浅色模式`,
+      dark: `切换到深色模式`,
+      auto: `切换到跟随系统配色`,
+    }
+    hud?.toast?.(messages[newTheme])
+  }
+
+  (() => {
+    // Apply user's preferred theme, if any.
+    const theme = window.localStorage.getItem('Stellar.theme')
+    if (theme !== null) {
+      applyTheme(theme)
+    } else {
+      utils.dark.mode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    utils.dark.method.toggle.start();
+  })()
+</script>
+
+
+<!-- optional -->
+
+
+
+<script defer>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.services = Object.assign({}, JSON.parse(`{"mdrender":{"js":"/js/services/mdrender.js"},"siteinfo":{"js":"/js/services/siteinfo.js","api":null},"ghinfo":{"js":"/js/services/ghinfo.js"},"rating":{"js":"/js/services/rating.js","api":"https://star-vote.xaox.cc/api/rating"},"vote":{"js":"/js/services/vote.js","api":"https://star-vote.xaox.cc/api/vote"},"sites":{"js":"/js/services/sites.js"},"friends":{"js":"/js/services/friends.js"},"friends_and_posts":{"js":"/js/services/friends_and_posts.js"},"timeline":{"js":"/js/services/timeline.js"},"fcircle":{"js":"/js/services/fcircle.js"},"weibo":{"js":"/js/services/weibo.js"},"memos":{"js":"/js/services/memos.js"},"voice":{"js":"/js/plugins/voice.js"},"video":{"js":"/js/plugins/video.js"},"download-file":{"js":"/js/plugins/download-file.js"},"twikoo":{"js":"/js/services/twikoo_latest_comment.js"},"waline":{"js":"/js/services/waline_latest_comment.js"},"artalk":{"js":"/js/services/artalk_latest_comment.js"},"giscus":{"js":"/js/services/giscus_latest_comment.js"},"contributors":{"edit_this_page":{"_posts/":null,"wiki/stellar/":"https://github.com/xaoxuu/hexo-theme-stellar-docs/blob/main/"},"js":"/js/services/contributors.js"}}`));
+    for (let id of Object.keys(ctx.services)) {
+      const js = ctx.services[id].js;
+      if (id == 'siteinfo') {
+        ctx.cardlinks = document.querySelectorAll('a.link-card[cardlink]');
+        if (ctx.cardlinks?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            setCardLink(ctx.cardlinks);
+          });
+        }
+      } else if (id == 'voice') {
+        ctx.voiceAudios = document.querySelectorAll('.voice>audio');
+        if (ctx.voiceAudios?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            createVoiceDom(ctx.voiceAudios);
+          });
+        }
+      } else if (id == 'video') {
+        ctx.videos = document.querySelectorAll('.video>video');
+        if (ctx.videos?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            videoEvents(ctx.videos);
+          });
+        }
+      } else if (id == 'download-file') {
+        ctx.files = document.querySelectorAll('.file');
+        if (ctx.files?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            downloadFileEvent(ctx.files);
+          });
+        }
+      } else {
+        const els = document.getElementsByClassName(`ds-${id}`);
+        if (els?.length > 0) {
+          utils.jq(() => {
+            if (id == 'timeline' || 'memos' || 'marked') {
+              utils.js(deps.marked).then(function () {
+                utils.js(js, { defer: true });
+              });
+            } else {
+              utils.js(js, { defer: true });
+            }
+          });
+        }
+      }
+    }
+
+    // chat iphone time
+    let phoneTimes = document.querySelectorAll('.chat .status-bar .time');
+
+    if (phoneTimes.length > 0) {
+      NowTime();
+      var date = new Date();
+      var sec = date.getSeconds();
+      var firstAdjustInterval = setInterval(firstAdjustTime, 1000 * (60 - sec));
+    }
+
+    function firstAdjustTime() {
+      NowTime();
+      clearInterval(firstAdjustInterval);
+      setInterval(NowTime, 1000 * 60);
+    }
+
+    function NowTime() {
+      for (let i = 0; i < phoneTimes.length; ++i) {
+        var timeSpan = phoneTimes[i];
+        var date = new Date();
+        var hour = date.getHours();
+        var min = date.getMinutes();
+        timeSpan.innerHTML = check(hour) + ":" + check(min);
+      }
+    };
+
+    function check(val) {
+      if (val < 10) {
+        return ("0" + val);
+      }
+      return (val);
+    }
+
+    // chat quote
+    const chat_quote_obverser = new IntersectionObserver((entries, observer) => {
+      entries.filter((entry) => { return entry.isIntersecting }).sort((a, b) => a.intersectionRect.y !== b.intersectionRect.y ? a.intersectionRect.y - b.intersectionRect.y : a.intersectionRect.x - b.intersectionRect.x).forEach((entry, index) => {
+          observer.unobserve(entry.target);
+          setTimeout(() => {
+            entry.target.classList.add('quote-blink');
+            setTimeout(() => {
+              entry.target.classList.remove('quote-blink');
+            }, 1000);
+          }, Math.max(100, 16) * (index + 1));
+        });
+    });
+
+    var chatQuotes = document.querySelectorAll(".chat .talk .quote");
+    chatQuotes.forEach((quote) => {
+      quote.addEventListener('click', function () {
+        var chatCellDom = document.getElementById("quote-" + quote.getAttribute("quotedCellTag"));
+        if (chatCellDom) {
+          var chatDiv = chatCellDom.parentElement;
+          var mid = chatDiv.clientHeight / 2;
+          var offsetTop = chatCellDom.offsetTop;
+          if (offsetTop > mid - chatCellDom.clientHeight / 2) {
+            chatDiv.scrollTo({
+              top: chatCellDom.offsetTop - mid + chatCellDom.clientHeight / 2,
+              behavior: "smooth"
+            });
+          } else {
+            chatDiv.scrollTo({
+              top: 0,
+              behavior: "smooth"
+            });
+          }
+          chat_quote_obverser.observe(chatCellDom);
+        }
+      });
+    });
+  });
+</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.search = {
+      path: `/search.json`,
+    }
+    utils.js('/js/search/local-search.js', { defer: true });
+  });
+</script><script>
+  window.FPConfig = {
+    delay: 0,
+    ignoreKeywords: [],
+    maxRPS: 5,
+    hoverDelay: 25
+  };
+</script>
+<script defer src="https://gcore.jsdelivr.net/npm/flying-pages@2/flying-pages.min.js"></script><script>
+  ctx.fancybox = {
+    selector: `.timenode p>img`,
+    css: `https://gcore.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css`,
+    js: `https://gcore.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js`
+  };
+  var selector = '[data-fancybox]:not(.error), .with-fancybox .atk-content img:not([atk-emoticon])';
+  if (ctx.fancybox.selector) {
+    selector += `, ${ctx.fancybox.selector}`
+  }
+  var needFancybox = document.querySelectorAll(selector).length !== 0;
+  if (!needFancybox) {
+    const memos = document.getElementsByClassName('ds-memos');
+    if (memos != undefined && memos.length > 0) {
+      needFancybox = true;
+    }
+    const fancybox = document.getElementsByClassName('with-fancybox');
+    if (fancybox != undefined && fancybox.length > 0) {
+      needFancybox = true;
+    }
+  }
+  if (needFancybox) {
+    utils.css(ctx.fancybox.css);
+    utils.js(ctx.fancybox.js, { defer: true }).then(function () {
+      Fancybox.bind(selector, {
+        hideScrollbar: false,
+        Thumbs: {
+          autoStart: false,
+        },
+        caption: (fancybox, slide) => {
+          return slide.triggerEl.alt || slide.triggerEl.dataset.caption || null
+        }
+      });
+    })
+  }
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    const swiper_api = document.getElementById('swiper-api');
+    if (swiper_api != undefined) {
+      utils.css(`https://unpkg.com/swiper@10.3/swiper-bundle.min.css`);
+      utils.js(`https://unpkg.com/swiper@10.3/swiper-bundle.min.js`, { defer: true }).then(function () {
+        const effect = swiper_api.getAttribute('effect') || '';
+        var swiper = new Swiper('.swiper#swiper-api', {
+          slidesPerView: 'auto',
+          spaceBetween: 8,
+          centeredSlides: true,
+          effect: effect,
+          rewind: true,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      })
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.codeElements = document.querySelectorAll('.code');
+    if (window.codeElements.length > 0) {
+      ctx.copycode = {
+        default_text: `Copy`,
+        success_text: `Copied`,
+        toast: `复制成功`,
+      };
+      utils.js('/js/plugins/copycode.js');
+    }
+  });
+</script>
+
+
+<!-- inject -->
+
+</div></body></html>
